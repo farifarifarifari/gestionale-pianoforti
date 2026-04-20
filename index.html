@@ -269,6 +269,9 @@ function renderDash(){
   const nAtt=pianos.filter(p=>p.stato==='N').length;
   const nDep=pianos.filter(p=>p.stato==='D').length;
   const revAnno=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.canone)||0),0);
+const valNol=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
+const valDep=pianos.filter(p=>p.stato==='D').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
+const valTot=valNol+valDep;
   const potM=mc.reduce((s,x)=>s+(x.canone||0),0);
   const potN=mn.reduce((s,x)=>s+(x.canone||0),0);
   return `
