@@ -165,7 +165,7 @@ async function syncContatti(){
   setStatus('<span class="spinner"></span>Cerco gruppi...');
   try{
     // Step 1: trova ID del gruppo NOLO LUNGO TERMINE
-    const groupsData=await apiGet('https://people.googleapis.com/v1/contactGroups?pageSize=200&groupFields=name,formattedName,memberCount');
+    const groupsData=await apiGet('https://people.googleapis.com/v1/contactGroups?pageSize=200&groupFields=name,memberCount');
     const gruppi=groupsData.contactGroups||[];
     
     // Debug: mostra tutti i gruppi
