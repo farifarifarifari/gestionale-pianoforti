@@ -90,6 +90,10 @@ main{flex:1;padding:12px;padding-bottom:80px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       Sync
     </button>
+    <button onclick="showTab('analisi')" id="tab-analisi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analisi
+    </button>
     <button onclick="showTab('import')" id="tab-import">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       Excel
@@ -133,7 +137,7 @@ function load(){
 
 function showTab(t){
   currentTab=t;searchQ='';
-  ['dash','scadenze','piani','sync','import'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
+  ['dash','scadenze','piani','sync','analisi','import'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
   render();
 }
 function render(){
@@ -142,6 +146,7 @@ function render(){
   else if(currentTab==='scadenze')m.innerHTML=renderScadenze();
   else if(currentTab==='piani')m.innerHTML=renderPiani();
   else if(currentTab==='sync')m.innerHTML=renderSync();
+  else if(currentTab==='analisi')m.innerHTML=renderAnalisi();
   else if(currentTab==='import')m.innerHTML=renderImport();
 }
 
@@ -372,6 +377,136 @@ function handleExcel(input){
   };
   reader.readAsBinaryString(file);
 }
+
+
+function renderAnalisi(){
+  // ── TREND ACQUISTI PER ANNO ──
+  const acquistiPerAnno={};
+  pianos.forEach(p=>{
+    if(!p.annoAcq||!p.costo) return;
+    const anno='20'+String(p.annoAcq).replace('20','');
+    if(!acquistiPerAnno[anno]) acquistiPerAnno[anno]={n:0,invest:0};
+    acquistiPerAnno[anno].n++;
+    acquistiPerAnno[anno].invest+=parseFloat(p.costo)||0;
+  });
+  const anni=Object.keys(acquistiPerAnno).sort();
+  const maxN=Math.max(...anni.map(a=>acquistiPerAnno[a].n),1);
+  const maxI=Math.max(...anni.map(a=>acquistiPerAnno[a].invest),1);
+
+  // ── ANALISI FORNITORI ──
+  const fornitori={};
+  pianos.forEach(p=>{
+    if(!p.fornitore||!p.costo) return;
+    const f=p.fornitore.trim()||'?';
+    if(!fornitori[f]) fornitori[f]={n:0,invest:0};
+    fornitori[f].n++;
+    fornitori[f].invest+=parseFloat(p.costo)||0;
+  });
+  const topForn=Object.entries(fornitori).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+  const maxFN=Math.max(...topForn.map(f=>f[1].n),1);
+
+  // ── RENDIMENTO PIANI ──
+  const rendimento=pianos.filter(p=>p.stato==='N'&&parseFloat(p.canone)>0&&parseFloat(p.costo)>0).map(p=>({
+    numero:p.numero,
+    marca:(p.marca||'').trim(),
+    modello:p.modello||'',
+    costo:parseFloat(p.costo),
+    canone:parseFloat(p.canone),
+    rend:Math.round(parseFloat(p.canone)/parseFloat(p.costo)*100),
+    anni:Math.round(parseFloat(p.costo)/parseFloat(p.canone)*10)/10,
+  })).sort((a,b)=>b.rend-a.rend);
+  const topRend=rendimento.slice(0,10);
+  const bottomRend=rendimento.slice(-5).reverse();
+  const rendMedio=rendimento.length?Math.round(rendimento.reduce((s,p)=>s+p.rend,0)/rendimento.length):0;
+
+  // ── STATO PARCO NEL TEMPO ──
+  const vendPerAnno={};
+  pianos.filter(p=>p.stato==='V'&&p.annoVendita).forEach(p=>{
+    const a='20'+String(p.annoVendita).replace('20','');
+    vendPerAnno[a]=(vendPerAnno[a]||0)+1;
+  });
+
+  return `
+  <div style="font-size:15px;font-weight:500;margin-bottom:12px">Analisi parco piani</div>
+
+  <!-- TREND ACQUISTI -->
+  <div class="card">
+    <div class="section-title">Acquisti per anno</div>
+    ${anni.map(a=>{
+      const d=acquistiPerAnno[a];
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:3px">
+          <span><strong style="color:#1a1a1a">${a}</strong> — ${d.n} piani</span>
+          <span>€${Math.round(d.invest).toLocaleString('it')}</span>
+        </div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(d.n/maxN*100)}%;background:#185FA5;border-radius:4px"></div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="font-size:11px;color:#999;margin-top:8px;padding-top:8px;border-top:0.5px solid rgba(0,0,0,0.08)">
+      Totale: ${pianos.length} piani · ${anni.length} anni di attività
+    </div>
+  </div>
+
+  <!-- RENDIMENTO MEDIO -->
+  <div class="card">
+    <div class="section-title">Rendimento piani a noleggio</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px">
+      <div style="background:#f5f5f3;border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:#666;margin-bottom:4px">Rendimento medio</div>
+        <div style="font-size:22px;font-weight:500">${rendMedio}%</div>
+        <div style="font-size:11px;color:#666;margin-top:2px">canone/costo annuo</div>
+      </div>
+      <div style="background:#f5f5f3;border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:#666;margin-bottom:4px">Ammortamento medio</div>
+        <div style="font-size:22px;font-weight:500">${rendimento.length?Math.round(rendimento.reduce((s,p)=>s+p.anni,0)/rendimento.length*10)/10:0}a</div>
+        <div style="font-size:11px;color:#666;margin-top:2px">anni per rientrare</div>
+      </div>
+    </div>
+    <div class="section-title">Top 10 — più redditizi</div>
+    ${topRend.map(p=>`<div class="summary-row">
+      <div><div style="font-weight:500;font-size:13px">${p.marca} ${p.modello} <span style="color:#999">#${p.numero}</span></div>
+      <div style="font-size:11px;color:#666">€${Math.round(p.costo).toLocaleString('it')} acquisto · €${Math.round(p.canone)}/a canone</div></div>
+      <div style="text-align:right">
+        <div style="font-weight:500;font-size:14px;color:#3B6D11">${p.rend}%</div>
+        <div style="font-size:11px;color:#666">${p.anni}a ammort.</div>
+      </div>
+    </div>`).join('')}
+    ${bottomRend.length?`<div class="section-title" style="margin-top:14px">Bottom 5 — meno redditizi</div>
+    ${bottomRend.map(p=>`<div class="summary-row">
+      <div><div style="font-weight:500;font-size:13px">${p.marca} ${p.modello} <span style="color:#999">#${p.numero}</span></div>
+      <div style="font-size:11px;color:#666">€${Math.round(p.costo).toLocaleString('it')} acquisto · €${Math.round(p.canone)}/a canone</div></div>
+      <div style="text-align:right">
+        <div style="font-weight:500;font-size:14px;color:#A32D2D">${p.rend}%</div>
+        <div style="font-size:11px;color:#666">${p.anni}a ammort.</div>
+      </div>
+    </div>`).join('')}`:''}
+  </div>
+
+  <!-- FORNITORI -->
+  <div class="card">
+    <div class="section-title">Top fornitori per numero piani</div>
+    ${topForn.map(([f,d])=>`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:3px">
+        <span><strong style="color:#1a1a1a">${f}</strong> — ${d.n} piani</span>
+        <span>€${Math.round(d.invest).toLocaleString('it')} · media €${Math.round(d.invest/d.n).toLocaleString('it')}</span>
+      </div>
+      <div style="height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(d.n/maxFN*100)}%;background:#534AB7;border-radius:4px"></div>
+      </div>
+    </div>`).join('')}
+  </div>
+
+  <!-- VENDITE PER ANNO -->
+  ${Object.keys(vendPerAnno).length?`<div class="card">
+    <div class="section-title">Vendite per anno</div>
+    ${Object.entries(vendPerAnno).sort().map(([a,n])=>`<div class="summary-row"><span>${a}</span><span style="font-weight:500">${n} piani venduti</span></div>`).join('')}
+  </div>`:''}
+
+  ${pianos.length===0?'<div class="empty-state">Importa il file Excel per vedere le analisi.</div>':''}`;
+}
+
 
 function clearContatti(){if(!confirm('Svuotare i contatti?'))return;contatti=[];lastSync=null;lsDel('pf_contatti');lsDel('pf_sync');render();}
 function clearAll(){if(!confirm('Svuotare tutto?'))return;pianos=[];contatti=[];lastSync=null;gToken=null;['pf_pianos','pf_contatti','pf_sync','pf_gtoken'].forEach(k=>lsDel(k));render();}
