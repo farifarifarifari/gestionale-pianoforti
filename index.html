@@ -77,8 +77,8 @@ main{flex:1;padding:12px;padding-bottom:80px}
 .wa-box .wa-sub{font-size:12px;color:#666;margin-bottom:12px}
 .btn-wa{background:#25D366;color:#fff;border:none;padding:11px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-wa:hover{background:#1da851}
+.sent-badge{font-size:10px;color:#3B6D11;background:#EAF3DE;padding:2px 6px;border-radius:8px;display:inline-block;margin-top:4px}
 .btn-wa-small{background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
-.sent-badge{font-size:10px;color:#3B6D11;background:#EAF3DE;padding:2px 7px;border-radius:10px;display:inline-block;margin-top:3px}
 
 </style>
 </head>
@@ -330,7 +330,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#185FA5">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between">${s.contatto.telefono}<button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></div>${getSentBadge(s.contatto.id)}`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#185FA5">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between">${s.contatto.telefono}<button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#185FA5">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -534,11 +534,11 @@ function renderAnalisi(){
 
 
 
-let waCurrentTel = '';
-let waCurrentContactId = '';
-function openWa(nome, tel, dataStr, canone, cid){
-  waCurrentTel = tel ? tel.replace(/\s/g,'') : '';
-  waCurrentContactId = cid||'';
+let waCurrentTel='';
+let waCurrentContactId='';
+function openWa(nome,tel,dataStr,canone,cid){
+  waCurrentTel=tel?tel.replace(/\s/g,''):'';
+  waCurrentContactId=cid||'';
   document.getElementById('wa-nome').textContent = nome;
   document.getElementById('wa-tel').textContent = tel || 'Nessun telefono';
   const canoneStr = canone ? ' (canone €'+Math.round(canone)+'/anno)' : '';
@@ -549,21 +549,18 @@ function closeWaModal(e){
   if(!e||e.target===document.getElementById('wa-modal')) document.getElementById('wa-modal').style.display='none';
 }
 function sendWa(){
-  const text = document.getElementById('wa-text').value;
-  const tel = waCurrentTel.startsWith('+') ? waCurrentTel : '+39'+waCurrentTel;
-  const url = 'https://wa.me/'+tel.replace('+','')+'/?text='+encodeURIComponent(text);
+  const text=document.getElementById('wa-text').value;
+  const tel=waCurrentTel.startsWith('+')?waCurrentTel:'+39'+waCurrentTel;
+  const url='https://wa.me/'+tel.replace('+','')+'/?text='+encodeURIComponent(text);
   window.open(url,'_blank');
   document.getElementById('wa-modal').style.display='none';
+  try{
+    const k='pf_wa_'+waCurrentContactId;
+    lsSet(k,new Date().toLocaleString('it-IT'));
+  }catch(e){}
+  render();
 }
 
-function getSentBadge(cid){
-  try{
-    const sent=JSON.parse(lsGet('pf_wa_sent')||'{}');
-    const log=sent[cid];
-    if(log&&log.length) return '<div><span class="sent-badge">✉ Inviato: '+log[log.length-1]+'</span></div>';
-  }catch(e){}
-  return '';
-}
 function clearContatti(){if(!confirm('Svuotare i contatti?'))return;contatti=[];lastSync=null;lsDel('pf_contatti');lsDel('pf_sync');render();}
 function clearAll(){if(!confirm('Svuotare tutto?'))return;pianos=[];contatti=[];lastSync=null;gToken=null;['pf_pianos','pf_contatti','pf_sync','pf_gtoken'].forEach(k=>lsDel(k));render();}
 
