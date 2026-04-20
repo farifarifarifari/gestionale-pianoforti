@@ -165,7 +165,7 @@ async function syncContatti(){
   setStatus('<span class="spinner"></span>Cerco gruppi...');
   try{
     // Step 1: trova ID del gruppo NOLO LUNGO TERMINE
-    const groupsData=await apiGet('https://people.googleapis.com/v1/contactGroups?pageSize=200&groupFields=name,memberCount ');
+    const groupsData=await apiGet('https://people.googleapis.com/v1/contactGroups?pageSize=200&groupFields=name,formattedName,memberCount');
     const gruppi=groupsData.contactGroups||[];
     
     // Debug: mostra tutti i gruppi
@@ -269,10 +269,10 @@ function renderDash(){
   const nAtt=pianos.filter(p=>p.stato==='N').length;
   const nDep=pianos.filter(p=>p.stato==='D').length;
   const revAnno=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.canone)||0),0);
-const valNol=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
-const valDep=pianos.filter(p=>p.stato==='D').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
-const valTot=valNol+valDep;
   const potM=mc.reduce((s,x)=>s+(x.canone||0),0);
+  const valNol=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
+  const valDep=pianos.filter(p=>p.stato==='D').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
+  const valTot=valNol+valDep;
   const potN=mn.reduce((s,x)=>s+(x.canone||0),0);
   return `
   ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('scadenze')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
@@ -280,7 +280,7 @@ const valTot=valNol+valDep;
   <div class="metric-grid">
     <div class="metric"><div class="metric-label">A noleggio</div><div class="metric-value">${nAtt}</div><div class="metric-sub">${nDep} in deposito</div></div>
     <div class="metric"><div class="metric-label">Revenue annua</div><div class="metric-value">€${Math.round(revAnno).toLocaleString('it')}</div><div class="metric-sub">da Excel</div></div>
-    <div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[oggi.getMonth()]}</div><div class="metric-value">${mc.length}</div><div class="metric-sub">${potM>0?'€'+Math.round(potM).toLocaleString('it')+' pot.':'—'}</div></div>
+    <div class="metric"><div class="metric-label">Valore noleggio</div><div class="metric-value">€${Math.round(valNol).toLocaleString('it')}</div><div class="metric-sub">piani N</div></div><div class="metric"><div class="metric-label">Valore deposito</div><div class="metric-value">€${Math.round(valDep).toLocaleString('it')}</div><div class="metric-sub">piani D</div></div></div><div class="metric-grid"><div class="metric"><div class="metric-label">Totale investito</div><div class="metric-value">€${Math.round(valTot).toLocaleString('it')}</div><div class="metric-sub">N + D</div></div><div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[oggi.getMonth()]}</div><div class="metric-value">${mc.length}</div><div class="metric-sub">${potM>0?'€'+Math.round(potM).toLocaleString('it')+' pot.':'—'}</div></div>
     <div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[(oggi.getMonth()+1)%12]}</div><div class="metric-value">${mn.length}</div><div class="metric-sub">${potN>0?'€'+Math.round(potN).toLocaleString('it')+' pot.':'—'}</div></div>
   </div>
   ${contatti.length===0?`<div class="card" style="text-align:center;padding:20px"><div style="font-size:13px;color:#666;margin-bottom:12px">Nessun contatto sincronizzato.</div><button class="btn-primary" onclick="showTab('sync')">Collega Google Contacts →</button></div>`:''}
