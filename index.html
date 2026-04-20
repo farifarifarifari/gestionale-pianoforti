@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestionale Pianoforti</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3}
+#app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+nav{background:#fff;border-bottom:0.5px solid rgba(0,0,0,0.12);display:flex;position:sticky;top:0;z-index:10}
+nav button{flex:1;padding:10px 2px;font-size:10px;font-weight:500;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;color:#666;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button.active{border-bottom:2px solid #185FA5;color:#185FA5}
+nav button svg{width:18px;height:18px}
+main{flex:1;padding:12px;padding-bottom:80px}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;padding:1rem;margin-bottom:12px}
+.metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.metric{background:#f5f5f3;border-radius:8px;padding:12px}
+.metric-label{font-size:11px;color:#666;margin-bottom:4px}
+.metric-value{font-size:22px;font-weight:500}
+.metric-sub{font-size:11px;color:#666;margin-top:2px}
+.section-title{font-size:11px;font-weight:500;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
+.scad-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.scad-card:hover{background:#f9f9f9}
+.scad-card.urgente{border-left:3px solid #E24B4A}
+.scad-card.warning{border-left:3px solid #EF9F27}
+.scad-card.ok{border-left:3px solid #639922}
+.scad-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.scad-nome{font-weight:500;font-size:14px}
+.scad-meta{font-size:12px;color:#666;margin-top:3px}
+.badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
+.badge-red{background:#FCEBEB;color:#791F1F}
+.badge-orange{background:#FAEEDA;color:#633806}
+.badge-green{background:#EAF3DE;color:#27500A}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.piano-card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.piano-card:hover{background:#f9f9f9}
+.piano-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.piano-meta{font-size:12px;color:#666;display:flex;gap:8px;flex-wrap:wrap}
+.search-bar{margin-bottom:10px}
+.search-bar input{width:100%;padding:8px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:14px;background:#fff;color:#1a1a1a;outline:none}
+.search-bar input:focus{border-color:#185FA5}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.filter-btn{padding:5px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;background:#fff;color:#666}
+.filter-btn.active{background:#185FA5;color:#fff;border-color:#185FA5}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:13px}
+.summary-row:last-child{border-bottom:none}
+.bar-wrap{margin-bottom:8px}
+.bar-label{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:3px}
+.bar{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:#185FA5}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:flex-end}
+.sheet{background:#fff;border-radius:16px 16px 0 0;padding:16px;width:100%;max-height:85vh;overflow-y:auto}
+.detail-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid rgba(0,0,0,0.08);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:#666;flex-shrink:0;margin-right:12px}
+.close-btn{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#666;line-height:1}
+.btn-primary{background:#185FA5;color:#fff;border:none;padding:11px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:100%}
+.btn-primary:hover{background:#0C447C}
+.btn-secondary{background:none;color:#666;border:0.5px solid rgba(0,0,0,0.2);padding:9px;border-radius:8px;font-size:13px;cursor:pointer;width:100%;margin-top:8px}
+.btn-google{background:#fff;color:#3c4043;border:0.5px solid rgba(0,0,0,0.2);padding:11px 16px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+.btn-google:hover{background:#f5f5f5}
+.upload-area{border:1.5px dashed rgba(0,0,0,0.2);border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;margin-bottom:12px}
+.upload-area:hover{background:#f5f5f5}
+.empty-state{text-align:center;padding:48px 16px;color:#666}
+.alert-banner{border-radius:8px;padding:10px 14px;margin-bottom:10px;cursor:pointer}
+.alert-red{background:#FCEBEB;border-left:3px solid #E24B4A}
+.alert-orange{background:#FAEEDA;border-left:3px solid #EF9F27}
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.month-nav button{background:none;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px;color:#1a1a1a}
+.month-nav span{font-size:15px;font-weight:500}
+.month-totals{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid rgba(0,0,0,0.08)}
+.day-label{font-size:11px;font-weight:500;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin:12px 0 6px}
+.connected-dot{width:8px;height:8px;border-radius:50%;background:#639922;display:inline-block;margin-right:6px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ddd;border-top-color:#185FA5;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav>
+    <button class="active" onclick="showTab('dash')" id="tab-dash">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button onclick="showTab('scadenze')" id="tab-scadenze">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Scadenze
+    </button>
+    <button onclick="showTab('piani')" id="tab-piani">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      Anagrafica
+    </button>
+    <button onclick="showTab('sync')" id="tab-sync">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sync
+    </button>
+    <button onclick="showTab('import')" id="tab-import">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Excel
+    </button>
+  </nav>
+  <main id="main-content"></main>
+</div>
+<div id="overlay" class="overlay" style="display:none" onclick="overlayClick(event)">
+  <div class="sheet" id="sheet-content"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const CLIENT_ID='267543971233-fsb8goidid2r97ddgii7lvn0ntl9fjnr.apps.googleusercontent.com';
+const SCOPE='https://www.googleapis.com/auth/contacts.readonly';
+const MONTHS=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MONTHS_SHORT=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+let pianos=[],contatti=[],lastSync=null,gToken=null;
+let currentTab='dash',filterStato='ALL',searchQ='';
+let viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear();
+
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+
+function load(){
+  try{const d=lsGet('pf_pianos');if(d)pianos=JSON.parse(d);}catch(e){}
+  try{const d=lsGet('pf_contatti');if(d)contatti=JSON.parse(d);}catch(e){}
+  try{const d=lsGet('pf_sync');if(d)lastSync=d;}catch(e){}
+  try{const d=lsGet('pf_gtoken');if(d)gToken=d;}catch(e){}
+  // Controlla token nell'URL (ritorno OAuth)
+  const hash=window.location.hash||window.location.search;
+  if(hash&&hash.includes('access_token')){
+    const p=new URLSearchParams(hash.replace('#',''));
+    const tok=p.get('access_token');
+    if(tok){gToken=tok;lsSet('pf_gtoken',tok);history.replaceState(null,'',window.location.pathname);}
+  }
+}
+
+function showTab(t){
+  currentTab=t;searchQ='';
+  ['dash','scadenze','piani','sync','import'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
+  render();
+}
+function render(){
+  const m=document.getElementById('main-content');
+  if(currentTab==='dash')m.innerHTML=renderDash();
+  else if(currentTab==='scadenze')m.innerHTML=renderScadenze();
+  else if(currentTab==='piani')m.innerHTML=renderPiani();
+  else if(currentTab==='sync')m.innerHTML=renderSync();
+  else if(currentTab==='import')m.innerHTML=renderImport();
+}
+
+function googleAuth(){
+  const redirectUri=window.location.origin+window.location.pathname;
+  const params=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:redirectUri,response_type:'token',scope:SCOPE,prompt:'consent'});
+  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
+}
+
+async function syncContatti(){
+  if(!gToken){googleAuth();return;}
+  const statusEl=document.getElementById('sync-status');
+  if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Connessione a Google Contacts...';
+  try{
+    const groupsRes=await fetch('https://people.googleapis.com/v1/contactGroups?pageSize=100',{headers:{Authorization:'Bearer '+gToken}});
+    if(groupsRes.status===401){gToken=null;lsDel('pf_gtoken');if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Token scaduto. Riconnetti.</span>';render();return;}
+    const groupsData=await groupsRes.json();
+    const gruppo=(groupsData.contactGroups||[]).find(g=>(g.name||'').toUpperCase().includes('NOLEGGIO LUNGO TERMINE')||(g.formattedName||'').toUpperCase().includes('NOLEGGIO LUNGO TERMINE'));
+    if(!gruppo){if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Gruppo "NOLEGGIO LUNGO TERMINE" non trovato.</span>';return;}
+    if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Carico contatti...';
+    const membRes=await fetch('https://people.googleapis.com/v1/'+gruppo.resourceName+'?maxMembers=500',{headers:{Authorization:'Bearer '+gToken}});
+    const membData=await membRes.json();
+    const members=membData.memberResourceNames||[];
+    if(!members.length){if(statusEl)statusEl.innerHTML='<span style="color:#854F0B">Gruppo vuoto.</span>';return;}
+    if(statusEl)statusEl.innerHTML='<span class="spinner"></span>'+members.length+' contatti trovati...';
+    const parsed=[];
+    for(let i=0;i<members.length;i+=50){
+      const chunk=members.slice(i,i+50);
+      const qp=new URLSearchParams();
+      chunk.forEach(m=>qp.append('resourceNames',m));
+      qp.set('personFields','names,phoneNumbers,addresses,biographies,events');
+      const res=await fetch('https://people.googleapis.com/v1/people:batchGet?'+qp.toString(),{headers:{Authorization:'Bearer '+gToken}});
+      const data=await res.json();
+      (data.responses||[]).forEach(r=>{
+        const p=r.person;if(!p)return;
+        const dates=(p.events||[]).filter(e=>e.date&&e.date.month).map(e=>({
+          date:(e.date.year||new Date().getFullYear())+'-'+String(e.date.month).padStart(2,'0')+'-'+String(e.date.day||1).padStart(2,'0'),
+          label:e.formattedType||e.displayName||e.type||'Data importante'
+        }));
+        parsed.push({id:p.resourceName,nome:p.names?.[0]?.displayName||'—',telefono:p.phoneNumbers?.[0]?.value||'',indirizzo:p.addresses?.[0]?.formattedValue||'',notes:p.biographies?.[0]?.value||'',dates});
+      });
+    }
+    contatti=parsed;lastSync=new Date().toLocaleString('it-IT');
+    lsSet('pf_contatti',contatti);lsSet('pf_sync',lastSync);
+    render();
+  }catch(err){
+    const s=document.getElementById('sync-status');
+    if(s)s.innerHTML='<span style="color:#A32D2D">Errore: '+err.message+'</span>';
+  }
+}
+
+function disconnectGoogle(){if(!confirm('Disconnettere Google?'))return;gToken=null;lsDel('pf_gtoken');render();}
+
+function parseCanone(notes){if(!notes)return null;const m=notes.match(/canone\s+annuo\s*[€£]?\s*(\d[\d.,]*)/i);if(m)return parseFloat(m[1].replace(',','.'));return null;}
+function calcolaGiorni(month,day){const oggi=new Date();oggi.setHours(0,0,0,0);const d=new Date(oggi.getFullYear(),month,day);d.setHours(0,0,0,0);return Math.round((d-oggi)/(1000*60*60*24));}
+function getScadenzePerMese(month){
+  const result=[];
+  contatti.forEach(c=>{
+    (c.dates||[]).forEach(entry=>{
+      if(!entry.date)return;
+      const d=new Date(entry.date);if(isNaN(d.getTime()))return;
+      if(d.getMonth()===month)result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',canone:parseCanone(c.notes),gg:calcolaGiorni(d.getMonth(),d.getDate())});
+    });
+  });
+  return result.sort((a,b)=>a.day-b.day);
+}
+function fmtGg(gg){if(gg<0)return Math.abs(gg)+'gg fa';if(gg===0)return 'Oggi';if(gg===1)return 'Domani';return 'fra '+gg+'gg';}
+function badgeCls(gg){return gg<0?'badge-red':gg<=14?'badge-orange':'badge-green';}
+function cardCls(gg){return gg<0?'urgente':gg<=14?'warning':'ok';}
+
+function renderDash(){
+  const oggi=new Date();
+  const mc=getScadenzePerMese(oggi.getMonth());
+  const mn=getScadenzePerMese((oggi.getMonth()+1)%12);
+  const scadute=mc.filter(s=>s.gg<0);
+  const prox7=mc.filter(s=>s.gg>=0&&s.gg<=7);
+  const nAtt=pianos.filter(p=>p.stato==='N').length;
+  const nDep=pianos.filter(p=>p.stato==='D').length;
+  const revAnno=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.canone)||0),0);
+  const potM=mc.reduce((s,x)=>s+(x.canone||0),0);
+  const potN=mn.reduce((s,x)=>s+(x.canone||0),0);
+  return `
+  ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('scadenze')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
+  ${prox7.length?`<div class="alert-banner alert-orange" onclick="showTab('scadenze')"><div style="font-weight:500;font-size:13px;color:#854F0B">${prox7.length} scadenz${prox7.length===1?'a':'e'} nei prossimi 7 giorni</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(prox7.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">A noleggio</div><div class="metric-value">${nAtt}</div><div class="metric-sub">${nDep} in deposito</div></div>
+    <div class="metric"><div class="metric-label">Revenue annua</div><div class="metric-value">€${Math.round(revAnno).toLocaleString('it')}</div><div class="metric-sub">da Excel</div></div>
+    <div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[oggi.getMonth()]}</div><div class="metric-value">${mc.length}</div><div class="metric-sub">${potM>0?'€'+Math.round(potM).toLocaleString('it')+' pot.':'—'}</div></div>
+    <div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[(oggi.getMonth()+1)%12]}</div><div class="metric-value">${mn.length}</div><div class="metric-sub">${potN>0?'€'+Math.round(potN).toLocaleString('it')+' pot.':'—'}</div></div>
+  </div>
+  ${contatti.length===0?`<div class="card" style="text-align:center;padding:20px"><div style="font-size:13px;color:#666;margin-bottom:12px">Nessun contatto sincronizzato.<br>Vai su <strong>Sync</strong> per collegare Google Contacts.</div><button class="btn-primary" onclick="showTab('sync')">Collega Google Contacts →</button></div>`:''}
+  ${mc.length?`<div class="card"><div class="section-title">Questo mese — ${MONTHS[oggi.getMonth()]}</div>${mc.slice(0,6).map(s=>`<div class="summary-row" onclick="openContattoDetail('${s.contatto.id}')" style="cursor:pointer"><div><div style="font-weight:500;font-size:13px">${s.contatto.nome}</div><div style="font-size:11px;color:#666">${s.day} ${MONTHS_SHORT[s.month]}${s.label?' · '+s.label:''}</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">${s.canone?`<span style="font-weight:500;font-size:12px;color:#185FA5">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div>`).join('')}${mc.length>6?`<button onclick="showTab('scadenze')" class="btn-secondary" style="margin-top:8px">Tutte le ${mc.length} scadenze →</button>`:''}</div>`:''}
+  ${contatti.length>0?`<div style="text-align:center;font-size:11px;color:#999;margin-top:4px">${contatti.length} contatti · ${lastSync?'Sync: '+lastSync:''}</div>`:''}`;
+}
+
+function renderScadenze(){
+  const scad=getScadenzePerMese(viewMonth);
+  const totCanone=scad.reduce((s,x)=>s+(x.canone||0),0);
+  const byDay={};
+  scad.forEach(s=>{if(!byDay[s.day])byDay[s.day]=[];byDay[s.day].push(s);});
+  return `
+  <div class="month-nav">
+    <button onclick="prevMonth()">‹ ${MONTHS_SHORT[(viewMonth+11)%12]}</button>
+    <span>${MONTHS[viewMonth]} ${viewYear}</span>
+    <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
+  </div>
+  ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${totCanone>0?`<span style="font-weight:500;color:#185FA5">€${Math.round(totCanone).toLocaleString('it')} pot.</span>`:''}</div>`:''}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px">${s.contatto.telefono}</div>`:''}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#185FA5">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${scad.length===0?`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40" style="margin-bottom:12px;opacity:0.3"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
+}
+function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
+function nextMonth(){viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}render();}
+
+function renderPiani(){
+  let filtered=pianos.filter(p=>p.numero);
+  if(filterStato!=='ALL')filtered=filtered.filter(p=>p.stato===filterStato);
+  if(searchQ){const q=searchQ.toLowerCase();filtered=filtered.filter(p=>(p.marca||'').toLowerCase().includes(q)||(p.modello||'').toLowerCase().includes(q)||(p.cliente||'').toLowerCase().includes(q)||String(p.numero).includes(q)||(p.matricola||'').toLowerCase().includes(q));}
+  return `
+  <div class="search-bar"><input type="text" placeholder="Cerca marca, modello, cliente, #..." value="${searchQ}" oninput="searchQ=this.value;render()"/></div>
+  <div class="filter-row">${['ALL','N','D','V'].map(s=>`<button class="filter-btn${filterStato===s?' active':''}" onclick="filterStato='${s}';render()">${s==='ALL'?'Tutti':s==='N'?'Noleggio':s==='D'?'Deposito':'Venduti'}</button>`).join('')}</div>
+  <div style="font-size:12px;color:#666;margin-bottom:8px">${filtered.length} piani</div>
+  ${filtered.slice(0,80).map(p=>`<div class="piano-card" onclick="openPianoDetail(${p.numero})"><div class="piano-header"><span style="font-size:11px;color:#666;min-width:26px">#${p.numero}</span><span style="font-weight:500;font-size:14px;flex:1">${(p.marca||'').trim()} ${p.modello||''}</span><span class="badge ${p.stato==='N'?'badge-blue':p.stato==='D'?'badge-orange':'badge-green'}">${p.stato}</span>${p.silent==='S'?'<span class="badge" style="background:#FBEAF0;color:#72243E">S</span>':''}</div><div class="piano-meta"><span>${p.categoria||''}</span>${p.colore?`<span>${p.colore} ${p.finitura||''}</span>`:''} ${p.stato==='N'&&p.cliente?`<span style="color:#185FA5">${p.cliente}</span>`:''} ${p.costo&&parseFloat(p.costo)>0?`<span>€${Math.round(parseFloat(p.costo)).toLocaleString('it')}</span>`:''}</div></div>`).join('')}
+  ${filtered.length>80?`<div style="text-align:center;font-size:12px;color:#999;padding:12px">Mostrati 80/${filtered.length} — usa la ricerca</div>`:''}`;
+}
+
+function renderSync(){
+  return `<div class="card">
+    <div style="font-size:15px;font-weight:500;margin-bottom:6px">Google Contacts</div>
+    <div style="font-size:13px;color:#666;margin-bottom:16px">Legge il gruppo <strong>NOLEGGIO LUNGO TERMINE</strong> e importa tutte le date importanti.</div>
+    ${!gToken?`<button class="btn-google" onclick="googleAuth()"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Connetti Google Contacts</button>`:`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="display:flex;align-items:center"><span class="connected-dot"></span><span style="font-size:13px;font-weight:500">Google connesso</span></div><button onclick="disconnectGoogle()" style="font-size:12px;color:#666;background:none;border:none;cursor:pointer">Disconnetti</button></div><button class="btn-primary" onclick="syncContatti()">Sincronizza ora</button>`}
+    <div id="sync-status" style="margin-top:12px;font-size:13px;color:#666"></div>
+  </div>
+  ${contatti.length?`<div class="card"><div class="section-title">Dati importati</div><div class="summary-row"><span>Contatti</span><span style="font-weight:500">${contatti.length}</span></div><div class="summary-row"><span>Con canone</span><span style="font-weight:500">${contatti.filter(c=>parseCanone(c.notes)).length}</span></div><div class="summary-row"><span>Totale date</span><span style="font-weight:500">${contatti.reduce((s,c)=>s+(c.dates||[]).length,0)}</span></div>${lastSync?`<div class="summary-row"><span>Ultimo sync</span><span style="font-weight:500">${lastSync}</span></div>`:''}<button onclick="clearContatti()" style="margin-top:10px;padding:7px 14px;border:0.5px solid #F09595;border-radius:8px;font-size:12px;background:none;cursor:pointer;color:#A32D2D">Svuota contatti</button></div>`:''}`;
+}
+
+function renderImport(){
+  return `<div class="card">
+    <div style="font-size:15px;font-weight:500;margin-bottom:6px">Importa parco piani da Excel</div>
+    <div style="font-size:13px;color:#666;margin-bottom:16px">Carica il file .xlsx. I contatti Google restano separati.</div>
+    <label class="upload-area" for="file-input"><svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.5" width="32" height="32" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div style="font-size:14px;font-weight:500">Tocca per selezionare il file</div><div style="font-size:12px;color:#666;margin-top:4px">.xlsx</div></label>
+    <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="handleExcel(this)"/>
+    <div id="import-status" style="margin-top:8px;font-size:13px"></div>
+    ${pianos.length?`<div style="margin-top:16px;padding-top:14px;border-top:0.5px solid rgba(0,0,0,0.08)"><div class="summary-row"><span>Piani in anagrafica</span><span style="font-weight:500">${pianos.length}</span></div><div class="summary-row"><span>Contatti Google</span><span style="font-weight:500">${contatti.length}</span></div><button onclick="clearAll()" style="margin-top:10px;padding:7px 14px;border:0.5px solid #F09595;border-radius:8px;font-size:12px;background:none;cursor:pointer;color:#A32D2D">Svuota tutto</button></div>`:''}`;
+}
+
+function openContattoDetail(id){
+  const c=contatti.find(x=>x.id===id);if(!c)return;
+  const canone=parseCanone(c.notes);
+  document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:4px">${c.nome}</div>${canone?`<div style="font-size:13px;color:#185FA5;font-weight:500;margin-bottom:12px">€${Math.round(canone)}/anno</div>`:'<div style="margin-bottom:12px"></div>'}${c.telefono?`<div class="detail-row"><span class="detail-label">Telefono</span><span style="font-weight:500">${c.telefono}</span></div>`:''}${c.indirizzo?`<div class="detail-row"><span class="detail-label">Indirizzo</span><span style="font-weight:500;text-align:right;max-width:60%">${c.indirizzo}</span></div>`:''}${c.notes?`<div style="margin:12px 0;font-size:12px;color:#666;background:#f5f5f3;padding:10px;border-radius:8px;white-space:pre-wrap">${c.notes}</div>`:''}<div style="margin-top:12px"><div class="section-title">Date importanti (${(c.dates||[]).length})</div>${!(c.dates||[]).length?'<div style="font-size:13px;color:#666">Nessuna data</div>':''}${(c.dates||[]).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(entry=>{const d=new Date(entry.date);const gg=calcolaGiorni(d.getMonth(),d.getDate());return`<div class="detail-row"><div><span style="font-weight:500">${d.getDate()} ${MONTHS[d.getMonth()]}</span>${entry.label?`<div style="font-size:11px;color:#666">${entry.label}</div>`:''}</div><span class="badge ${badgeCls(gg)}">${fmtGg(gg)}</span></div>`;}).join('')}</div>`;
+  document.getElementById('overlay').style.display='flex';
+}
+
+function openPianoDetail(num){
+  const p=pianos.find(x=>x.numero==num);if(!p)return;
+  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acquisto',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€'+Math.round(parseFloat(p.costo)).toLocaleString('it'):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Note',p.note]].filter(r=>r[1]);
+  document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:14px">${(p.marca||'').trim()} ${p.modello||''} <span style="color:#666;font-size:13px">#${p.numero}</span></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span style="font-weight:500;text-align:right;max-width:60%">${v}</span></div>`).join('')}`;
+  document.getElementById('overlay').style.display='flex';
+}
+
+function closeOverlay(){document.getElementById('overlay').style.display='none';}
+function overlayClick(e){if(e.target===document.getElementById('overlay'))closeOverlay();}
+
+function handleExcel(input){
+  const file=input.files[0];if(!file)return;
+  const status=document.getElementById('import-status');
+  status.textContent='Lettura...';
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets['Anagrafica']||wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      const clean=k=>String(k||'').trim();
+      const num=k=>{const v=parseFloat(k);return isNaN(v)?'':v;};
+      const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA'])})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
+      pianos=parsed;lsSet('pf_pianos',pianos);
+      status.innerHTML=`<span style="color:#3B6D11">✓ ${pianos.length} piani importati.</span>`;
+      setTimeout(()=>showTab('dash'),1200);
+    }catch(err){status.innerHTML=`<span style="color:#A32D2D">Errore: ${err.message}</span>`;}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function clearContatti(){if(!confirm('Svuotare i contatti?'))return;contatti=[];lastSync=null;lsDel('pf_contatti');lsDel('pf_sync');render();}
+function clearAll(){if(!confirm('Svuotare tutto?'))return;pianos=[];contatti=[];lastSync=null;gToken=null;['pf_pianos','pf_contatti','pf_sync','pf_gtoken'].forEach(k=>lsDel(k));render();}
+
+load();render();
+</script>
+</body>
+</html>
