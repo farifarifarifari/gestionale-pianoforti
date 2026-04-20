@@ -158,7 +158,7 @@ async function syncContatti(){
   const statusEl=document.getElementById('sync-status');
   if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Connessione a Google Contacts...';
   try{
-    const groupsRes=await fetch('https://people.googleapis.com/v1/contactGroups?pageSize=100',{headers:{Authorization:'Bearer '+gToken}});
+    const groupsRes=await fetch('https://people.googleapis.com/v1/contactGroups?pageSize=1000&groupFields=name,formattedName,memberCount',{headers:{Authorization:'Bearer '+gToken}});
     if(groupsRes.status===401){gToken=null;lsDel('pf_gtoken');if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Token scaduto. Riconnetti.</span>';render();return;}
     const groupsData=await groupsRes.json();
     const gruppo=(groupsData.contactGroups||[]).find(g=>(g.name||'').toUpperCase().includes('NOLO LUNGO TERMINE')||(g.formattedName||'').toUpperCase().includes('NOLO LUNGO TERMINE'));
