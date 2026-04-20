@@ -156,36 +156,35 @@ function googleAuth(){
 async function syncContatti(){
   if(!gToken){googleAuth();return;}
   const statusEl=document.getElementById('sync-status');
-  if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Connessione a Google Contacts...';
+  if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Carico contatti...';
   try{
-    const groupsRes=await fetch('https://people.googleapis.com/v1/contactGroups?pageSize=1000&groupFields=name,formattedName,memberCount',{headers:{Authorization:'Bearer '+gToken}});
-    if(groupsRes.status===401){gToken=null;lsDel('pf_gtoken');if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Token scaduto. Riconnetti.</span>';render();return;}
-    const groupsData=await groupsRes.json();
-    const gruppo=(groupsData.contactGroups||[]).find(g=>(g.name||'').toUpperCase().includes('NOLO LUNGO TERMINE')||(g.formattedName||'').toUpperCase().includes('NOLO LUNGO TERMINE'));
-    if(!gruppo){if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Gruppo "NOLO LUNGO TERMINE" non trovato. Gruppi: '+(groupsData.contactGroups||[]).map(g=>g.name).join(' | ')+'</span>';return;}
-    if(statusEl)statusEl.innerHTML='Trovato: '+gruppo.name+' / '+gruppo.formattedName;return;
-    const membRes=await fetch('https://people.googleapis.com/v1/'+gruppo.resourceName+'?maxMembers=500',{headers:{Authorization:'Bearer '+gToken}});
-    const membData=await membRes.json();
-    const members=membData.memberResourceNames||[];
-    if(!members.length){if(statusEl)statusEl.innerHTML='<span style="color:#854F0B">Gruppo vuoto.</span>';return;}
-    if(statusEl)statusEl.innerHTML='<span class="spinner"></span>'+members.length+' contatti trovati...';
-    const parsed=[];
-    for(let i=0;i<members.length;i+=50){
-      const chunk=members.slice(i,i+50);
-      const qp=new URLSearchParams();
-      chunk.forEach(m=>qp.append('resourceNames',m));
-      qp.set('personFields','names,phoneNumbers,addresses,biographies,events');
-      const res=await fetch('https://people.googleapis.com/v1/people:batchGet?'+qp.toString(),{headers:{Authorization:'Bearer '+gToken}});
+    let allConnections=[];
+    let pageToken='';
+    do{
+      const url='https://people.googleapis.com/v1/people/me/connections?pageSize=1000&personFields=names,phoneNumbers,addresses,biographies,events,memberships'+(pageToken?'&pageToken='+pageToken:'');
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
+      if(res.status===401){gToken=null;lsDel('pf_gtoken');if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Token scaduto. Riconnetti.</span>';render();return;}
       const data=await res.json();
-      (data.responses||[]).forEach(r=>{
-        const p=r.person;if(!p)return;
-        const dates=(p.events||[]).filter(e=>e.date&&e.date.month).map(e=>({
-          date:(e.date.year||new Date().getFullYear())+'-'+String(e.date.month).padStart(2,'0')+'-'+String(e.date.day||1).padStart(2,'0'),
-          label:e.formattedType||e.displayName||e.type||'Data importante'
-        }));
-        parsed.push({id:p.resourceName,nome:p.names?.[0]?.displayName||'—',telefono:p.phoneNumbers?.[0]?.value||'',indirizzo:p.addresses?.[0]?.formattedValue||'',notes:p.biographies?.[0]?.value||'',dates});
+      allConnections=allConnections.concat(data.connections||[]);
+      pageToken=data.nextPageToken||'';
+    }while(pageToken);
+    if(statusEl)statusEl.innerHTML='<span class="spinner"></span>'+allConnections.length+' contatti trovati. Filtro gruppo...';
+    const parsed=[];
+    allConnections.forEach(p=>{
+      const memberships=p.memberships||[];
+      const inGruppo=memberships.some(m=>{
+        const n=(m.contactGroupMembership?.contactGroupId||'').toUpperCase();
+        const fn=(m.contactGroupMembership?.contactGroupResourceName||'').toUpperCase();
+        return n.includes('NOLO') || fn.includes('NOLO');
       });
-    }
+      if(!inGruppo)return;
+      const dates=(p.events||[]).filter(e=>e.date&&e.date.month).map(e=>({
+        date:(e.date.year||new Date().getFullYear())+'-'+String(e.date.month).padStart(2,'0')+'-'+String(e.date.day||1).padStart(2,'0'),
+        label:e.formattedType||e.displayName||e.type||'Data importante'
+      }));
+      parsed.push({id:p.resourceName,nome:p.names?.[0]?.displayName||'—',telefono:p.phoneNumbers?.[0]?.value||'',indirizzo:p.addresses?.[0]?.formattedValue||'',notes:p.biographies?.[0]?.value||'',dates});
+    });
+    if(statusEl)statusEl.innerHTML='<span class="spinner"></span>'+parsed.length+' contatti nel gruppo NOLO LUNGO TERMINE...';
     contatti=parsed;lastSync=new Date().toLocaleString('it-IT');
     lsSet('pf_contatti',contatti);lsSet('pf_sync',lastSync);
     render();
@@ -194,7 +193,6 @@ async function syncContatti(){
     if(s)s.innerHTML='<span style="color:#A32D2D">Errore: '+err.message+'</span>';
   }
 }
-
 function disconnectGoogle(){if(!confirm('Disconnettere Google?'))return;gToken=null;lsDel('pf_gtoken');render();}
 
 function parseCanone(notes){if(!notes)return null;const m=notes.match(/canone\s+annuo\s*[€£]?\s*(\d[\d.,]*)/i);if(m)return parseFloat(m[1].replace(',','.'));return null;}
