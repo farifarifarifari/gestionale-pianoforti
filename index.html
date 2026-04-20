@@ -162,7 +162,7 @@ async function syncContatti(){
     if(groupsRes.status===401){gToken=null;lsDel('pf_gtoken');if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Token scaduto. Riconnetti.</span>';render();return;}
     const groupsData=await groupsRes.json();
     const gruppo=(groupsData.contactGroups||[]).find(g=>(g.name||'').toUpperCase().includes('NOLO LUNGO TERMINE')||(g.formattedName||'').toUpperCase().includes('NOLO LUNGO TERMINE'));
-    if(!gruppo){if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Gruppo "NOLO LUNGO TERMINE" non trovato.</span>';return;}
+    if(!gruppo){if(statusEl)statusEl.innerHTML='<span style="color:#A32D2D">Gruppo "NOLO LUNGO TERMINE" non trovato. Gruppi: '+(groupsData.contactGroups||[]).map(g=>g.name).join(' | ')+'</span>';return;}
     if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Carico contatti...';
     const membRes=await fetch('https://people.googleapis.com/v1/'+gruppo.resourceName+'?maxMembers=500',{headers:{Authorization:'Bearer '+gToken}});
     const membData=await membRes.json();
