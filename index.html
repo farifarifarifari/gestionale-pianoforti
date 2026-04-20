@@ -156,7 +156,7 @@ function googleAuth(){
 async function syncContatti(){
   if(!gToken){googleAuth();return;}
   const statusEl=document.getElementById('sync-status');
-  if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Carico contatti...';
+  if(statusEl)statusEl.innerHTML='<span class="spinner"></span>Carico contatti... token:'+gToken.substring(0,20);
   try{
     let allConnections=[];
     let pageToken='';
