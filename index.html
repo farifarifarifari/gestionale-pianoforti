@@ -321,6 +321,7 @@ function renderDash(){
     <div class="metric"><div class="metric-label">Valore noleggio</div><div class="metric-value">€${Math.round(valNol).toLocaleString('it')}</div><div class="metric-sub">piani N</div></div><div class="metric"><div class="metric-label">Valore deposito</div><div class="metric-value">€${Math.round(valDep).toLocaleString('it')}</div><div class="metric-sub">piani D</div></div></div><div class="metric-grid"><div class="metric"><div class="metric-label">Totale investito</div><div class="metric-value">€${Math.round(valTot).toLocaleString('it')}</div><div class="metric-sub">N + D</div></div><div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[oggi.getMonth()]}</div><div class="metric-value">${mc.length}</div><div class="metric-sub">${potM>0?'€'+Math.round(potM).toLocaleString('it')+' pot.':'—'}</div></div>
     <div class="metric"><div class="metric-label">Scadenze ${MONTHS_SHORT[(oggi.getMonth()+1)%12]}</div><div class="metric-value">${mn.length}</div><div class="metric-sub">${potN>0?'€'+Math.round(potN).toLocaleString('it')+' pot.':'—'}</div></div>
   </div>
+  ${renderComposizione()}
   ${contatti.length===0?`<div class="card" style="text-align:center;padding:20px"><div style="font-size:13px;color:#666;margin-bottom:12px">Nessun contatto sincronizzato.</div><button class="btn-primary" onclick="showTab('sync')">Collega Google Contacts →</button></div>`:''}
   ${mc.length?`<div class="card"><div class="section-title">Questo mese — ${MONTHS[oggi.getMonth()]}</div>${mc.slice(0,6).map(s=>`<div class="summary-row" onclick="openContattoDetail('${s.contatto.id}')" style="cursor:pointer"><div><div style="font-weight:500;font-size:13px">${s.contatto.nome}</div><div style="font-size:11px;color:#666">${s.day} ${MONTHS_SHORT[s.month]}${s.label?' · '+s.label:''}</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">${s.canone?`<span style="font-weight:500;font-size:12px;color:#185FA5">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div>`).join('')}${mc.length>6?`<button onclick="showTab('scadenze')" class="btn-secondary" style="margin-top:8px">Tutte le ${mc.length} →</button>`:''}</div>`:''}
   ${contatti.length>0?`<div style="text-align:center;font-size:11px;color:#999;margin-top:4px">${contatti.length} contatti · ${lastSync||''}</div>`:''}`;
@@ -567,6 +568,29 @@ function sendWa(){
     lsSet(k,new Date().toLocaleString('it-IT'));
   }catch(e){}
   render();
+}
+
+
+function renderComposizione(){
+  if(!pianos.length) return '';
+  const dep=pianos.filter(p=>p.stato==='D');
+  const depCO=dep.filter(p=>p.categoria==='CO').length;
+  const depVE=dep.filter(p=>p.categoria==='VE').length;
+  const depSilent=dep.filter(p=>p.silent==='S').length;
+  const nolSilent=pianos.filter(p=>p.stato==='N'&&p.silent==='S').length;
+  const cinesi=pianos.filter(p=>p.stato==='N'&&p.cinese==='C').length;
+  const nolTot=pianos.filter(p=>p.stato==='N').length;
+  const cinesiPct=nolTot?Math.round(cinesi/nolTot*100):0;
+  let h='<div class="card">';
+  h+='<div class="section-title">Composizione parco</div>';
+  h+='<div class="summary-row"><span>Deposito — verticali</span><span style="font-weight:500">'+depVE+'</span></div>';
+  h+='<div class="summary-row"><span>Deposito — code</span><span style="font-weight:500">'+depCO+'</span></div>';
+  h+='<div class="summary-row"><span>Deposito — silent</span><span style="font-weight:500">'+depSilent+'</span></div>';
+  h+='<div style="height:0.5px;background:rgba(0,0,0,0.08);margin:6px 0"></div>';
+  h+='<div class="summary-row"><span>Noleggio — silent</span><span style="font-weight:500">'+nolSilent+'</span></div>';
+  h+='<div class="summary-row"><span>Noleggio — studenti cinesi</span><span style="font-weight:500">'+cinesi+' ('+cinesiPct+'%)</span></div>';
+  h+='</div>';
+  return h;
 }
 
 function clearContatti(){if(!confirm('Svuotare i contatti?'))return;contatti=[];lastSync=null;lsDel('pf_contatti');lsDel('pf_sync');render();}
