@@ -305,7 +305,7 @@ function renderDash(){
   const depVE=dep.filter(p=>p.categoria==='VE').length;
   const depSilent=dep.filter(p=>p.silent==='S').length;
   const nolSilent=pianos.filter(p=>p.stato==='N'&&p.silent==='S').length;
-  const cinesi=pianos.filter(p=>p.stato==='N'&&p.cinese==='C').length;
+  const cinesi=pianos.filter(p=>p.stato==='N'&&(p.cinese==='C'||p.cinese===true)).length;
   const nolTot=pianos.filter(p=>p.stato==='N').length;
   const cinesiPct=nolTot?Math.round(cinesi/nolTot*100):0;
   const valNol=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
@@ -383,7 +383,7 @@ function openContattoDetail(id){
 
 function openPianoDetail(num){
   const p=pianos.find(x=>x.numero==num);if(!p)return;
-  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acq.',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€'+Math.round(parseFloat(p.costo)).toLocaleString('it'):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Note',p.note]].filter(r=>r[1]);
+  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acq.',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€'+Math.round(parseFloat(p.costo)).toLocaleString('it'):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Cinese',p.cinese==='C'?'Sì':''],['Note',p.note]].filter(r=>r[1]);
   document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:14px">${(p.marca||'').trim()} ${p.modello||''} <span style="color:#666;font-size:13px">#${p.numero}</span></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span style="font-weight:500;text-align:right;max-width:60%">${v}</span></div>`).join('')}`;
   document.getElementById('overlay').style.display='flex';
 }
@@ -578,17 +578,17 @@ function renderComposizione(){
   const depVE=dep.filter(p=>p.categoria==='VE').length;
   const depSilent=dep.filter(p=>p.silent==='S').length;
   const nolSilent=pianos.filter(p=>p.stato==='N'&&p.silent==='S').length;
-  const cinesi=pianos.filter(p=>p.stato==='N'&&p.cinese==='C').length;
+  const cinesi=pianos.filter(p=>p.stato==='N'&&(p.cinese==='C'||p.cinese===true)).length;
   const nolTot=pianos.filter(p=>p.stato==='N').length;
   const cinesiPct=nolTot?Math.round(cinesi/nolTot*100):0;
   let h='<div class="card">';
   h+='<div class="section-title">Composizione parco</div>';
-  h+='<div class="summary-row"><span>Deposito — verticali</span><span style="font-weight:500">'+depVE+'</span></div>';
-  h+='<div class="summary-row"><span>Deposito — code</span><span style="font-weight:500">'+depCO+'</span></div>';
-  h+='<div class="summary-row"><span>Deposito — silent</span><span style="font-weight:500">'+depSilent+'</span></div>';
+  h+='<div class="summary-row"><span>Deposito — Verticali</span><span style="font-weight:500">'+depVE+'</span></div>';
+  h+='<div class="summary-row"><span>Deposito — Code</span><span style="font-weight:500">'+depCO+'</span></div>';
+  h+='<div class="summary-row"><span>Deposito — Silent</span><span style="font-weight:500">'+depSilent+'</span></div>';
   h+='<div style="height:0.5px;background:rgba(0,0,0,0.08);margin:6px 0"></div>';
-  h+='<div class="summary-row"><span>Noleggio — silent</span><span style="font-weight:500">'+nolSilent+'</span></div>';
-  h+='<div class="summary-row"><span>Noleggio — studenti cinesi</span><span style="font-weight:500">'+cinesi+' ('+cinesiPct+'%)</span></div>';
+  h+='<div class="summary-row"><span>Noleggio — Silent</span><span style="font-weight:500">'+nolSilent+'</span></div>';
+  h+='<div class="summary-row"><span>Noleggio — Studenti Cinesi</span><span style="font-weight:500">'+cinesi+' ('+cinesiPct+'%)</span></div>';
   h+='</div>';
   return h;
 }
