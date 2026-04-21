@@ -305,7 +305,7 @@ function renderDash(){
   const depVE=dep.filter(p=>p.categoria==='VE').length;
   const depSilent=dep.filter(p=>p.silent==='S').length;
   const nolSilent=pianos.filter(p=>p.stato==='N'&&p.silent==='S').length;
-  const cinesi=pianos.filter(p=>p.stato==='N'&&(p.cinese==='C'||p.cinese===true)).length;
+  const cinesi=pianos.filter(p=>p.stato==='N'&&p.cinese==='C').length;
   const nolTot=pianos.filter(p=>p.stato==='N').length;
   const cinesiPct=nolTot?Math.round(cinesi/nolTot*100):0;
   const valNol=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
@@ -370,7 +370,7 @@ function renderImport(){
     <div style="font-size:15px;font-weight:500;margin-bottom:6px">Importa parco piani da Excel</div>
     <label class="upload-area" for="file-input"><svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.5" width="32" height="32" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div style="font-size:14px;font-weight:500">Seleziona file .xlsx</div></label>
     <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="handleExcel(this)"/>
-    <div id="import-status" style="margin-top:8px;font-size:13px"></div><div id="debug-cols" style="margin-top:8px;font-size:11px;color:#999;word-break:break-all"></div>
+    <div id="import-status" style="margin-top:8px;font-size:13px"></div>
     ${pianos.length?`<div style="margin-top:14px;padding-top:14px;border-top:0.5px solid rgba(0,0,0,0.08)"><div class="summary-row"><span>Piani</span><span style="font-weight:500">${pianos.length}</span></div><div class="summary-row"><span>Contatti</span><span style="font-weight:500">${contatti.length}</span></div><button onclick="clearAll()" style="margin-top:10px;padding:7px 14px;border:0.5px solid #F09595;border-radius:8px;font-size:12px;background:none;cursor:pointer;color:#A32D2D">Svuota tutto</button></div>`:''}`;
 }
 
@@ -383,7 +383,7 @@ function openContattoDetail(id){
 
 function openPianoDetail(num){
   const p=pianos.find(x=>x.numero==num);if(!p)return;
-  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acq.',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€'+Math.round(parseFloat(p.costo)).toLocaleString('it'):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Cinese',p.cinese==='C'?'Sì (C)':'No ('+String(p.cinese)+')'],['Note',p.note]].filter(r=>r[1]);
+  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acq.',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€'+Math.round(parseFloat(p.costo)).toLocaleString('it'):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Cinese',p.cinese==='C'?'Sì':''],['Note',p.note]].filter(r=>r[1]);
   document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:14px">${(p.marca||'').trim()} ${p.modello||''} <span style="color:#666;font-size:13px">#${p.numero}</span></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span style="font-weight:500;text-align:right;max-width:60%">${v}</span></div>`).join('')}`;
   document.getElementById('overlay').style.display='flex';
 }
@@ -401,14 +401,11 @@ function handleExcel(input){
       const wb=XLSX.read(e.target.result,{type:'binary'});
       const ws=wb.Sheets['Anagrafica']||wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(rows.length>0){lsSet('debug_cols',JSON.stringify(Object.keys(rows[0]).slice(24,32)));}
       const clean=k=>String(k||'').trim();
       const num=k=>{const v=parseFloat(k);return isNaN(v)?'':v;};
       const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA'])})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
       pianos=parsed;lsSet('pf_pianos',pianos);
       status.innerHTML=`<span style="color:#3B6D11">✓ ${pianos.length} piani importati.</span>`;
-      const dc=document.getElementById('debug-cols');
-      if(dc)dc.textContent='Colonne 24-32: '+lsGet('debug_cols');
       setTimeout(()=>showTab('dash'),1200);
     }catch(err){status.innerHTML=`<span style="color:#A32D2D">Errore: ${err.message}</span>`;}
   };
@@ -581,7 +578,7 @@ function renderComposizione(){
   const depVE=dep.filter(p=>p.categoria==='VE').length;
   const depSilent=dep.filter(p=>p.silent==='S').length;
   const nolSilent=pianos.filter(p=>p.stato==='N'&&p.silent==='S').length;
-  const cinesi=pianos.filter(p=>p.stato==='N'&&(p.cinese==='C'||p.cinese===true)).length;
+  const cinesi=pianos.filter(p=>p.stato==='N'&&p.cinese==='C').length;
   const nolTot=pianos.filter(p=>p.stato==='N').length;
   const cinesiPct=nolTot?Math.round(cinesi/nolTot*100):0;
   let h='<div class="card">';
