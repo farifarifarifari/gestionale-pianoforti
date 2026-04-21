@@ -300,6 +300,14 @@ function renderDash(){
   const nDep=pianos.filter(p=>p.stato==='D').length;
   const revAnno=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.canone)||0),0);
   const potM=mc.reduce((s,x)=>s+(x.canone||0),0);
+  const dep=pianos.filter(p=>p.stato==='D');
+  const depCO=dep.filter(p=>p.categoria==='CO').length;
+  const depVE=dep.filter(p=>p.categoria==='VE').length;
+  const depSilent=dep.filter(p=>p.silent==='S').length;
+  const nolSilent=pianos.filter(p=>p.stato==='N'&&p.silent==='S').length;
+  const cinesi=pianos.filter(p=>p.stato==='N'&&p.cinese==='C').length;
+  const nolTot=pianos.filter(p=>p.stato==='N').length;
+  const cinesiPct=nolTot?Math.round(cinesi/nolTot*100):0;
   const valNol=pianos.filter(p=>p.stato==='N').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
   const valDep=pianos.filter(p=>p.stato==='D').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
   const valTot=valNol+valDep;
