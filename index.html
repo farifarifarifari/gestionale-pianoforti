@@ -407,7 +407,7 @@ function handleExcel(input){
       for(let r=range.s.r+1;r<=range.e.r;r++){
         const numCell=ws[XLSX.utils.encode_cell({r:r,c:0})];
         const cinCell=ws[XLSX.utils.encode_cell({r:r,c:27})];
-        if(numCell&&cinCell&&cinCell.v) cinesiMap[numCell.v]='C';
+        if(numCell&&cinCell&&cinCell.v) cinesiMap[parseFloat(numCell.v)]='C';
       }
       const clean=k=>String(k||'').trim();
       const num=k=>{const v=parseFloat(k);return isNaN(v)?'':v;};
