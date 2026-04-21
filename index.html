@@ -401,6 +401,14 @@ function handleExcel(input){
       const wb=XLSX.read(e.target.result,{type:'binary'});
       const ws=wb.Sheets['Anagrafica']||wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      // Map column AB (index 27) by cell address for cinese
+      const cinesiMap={};
+      const range=XLSX.utils.decode_range(ws['!ref']||'A1');
+      for(let r=range.s.r+1;r<=range.e.r;r++){
+        const numCell=ws[XLSX.utils.encode_cell({r:r,c:0})];
+        const cinCell=ws[XLSX.utils.encode_cell({r:r,c:27})];
+        if(numCell&&cinCell&&cinCell.v) cinesiMap[numCell.v]='C';
+      }
       const clean=k=>String(k||'').trim();
       const num=k=>{const v=parseFloat(k);return isNaN(v)?'':v;};
       const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA'])})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
