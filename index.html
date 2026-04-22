@@ -668,38 +668,31 @@ function copyReport(){
   }).catch(()=>{});
 }
 
-
 function renderYamahaEta(){
   if(!pianos.length) return '';
   const oggi=new Date().getFullYear();
-
   function etaMedia(arr){
     const valid=arr.filter(p=>p.annoCostr&&parseInt(p.annoCostr)>1900);
     if(!valid.length) return null;
     const avg=valid.reduce((s,p)=>s+parseInt(p.annoCostr),0)/valid.length;
-    return {anno:Math.round(avg), eta:Math.round(oggi-avg), n:valid.length};
+    return {anno:Math.round(avg),eta:Math.round(oggi-avg),n:valid.length};
   }
-
-  function riga(label, stat){
+  function riga(label,stat){
     if(!stat) return '<div class="summary-row"><span>'+label+'</span><span style="color:#aaa">n/d</span></div>';
-    return '<div class="summary-row"><span>'+label+' <span style="font-size:11px;color:#aaa">('+stat.n+' piani)</span></span>'
-      +'<div style="text-align:right"><span style="font-weight:500;color:#A01020">'+stat.anno+'</span>'
-      +'<span style="font-size:11px;color:#888;margin-left:6px">~'+stat.eta+' anni</span></div></div>';
+    return '<div class="summary-row"><span>'+label+' <span style="font-size:11px;color:#aaa">('+stat.n+')</span></span><div style="text-align:right"><span style="font-weight:500;color:#A01020">'+stat.anno+'</span><span style="font-size:11px;color:#888;margin-left:6px">~'+stat.eta+' anni</span></div></div>';
   }
-
-  const yPoss=pianos.filter(p=>(p.marca||'').toUpperCase()==='YAMAHA'&&(p.stato==='N'||p.stato==='D'));
-  const yVend=pianos.filter(p=>(p.marca||'').toUpperCase()==='YAMAHA'&&p.stato==='V');
-
+  const yP=pianos.filter(p=>(p.marca||'').toUpperCase()==='YAMAHA'&&(p.stato==='N'||p.stato==='D'));
+  const yV=pianos.filter(p=>(p.marca||'').toUpperCase()==='YAMAHA'&&p.stato==='V');
   let h='<div class="card"><div class="section-title">Yamaha — Eta media per categoria</div>';
-  h+='<div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;margin-top:2px">In possesso (Noleggio + Deposito)</div>';
-  h+=riga('Verticali (tutti)',etaMedia(yPoss.filter(p=>p.categoria==='VE')));
-  h+=riga('Code',etaMedia(yPoss.filter(p=>p.categoria==='CO')));
-  h+=riga('Verticali Silent',etaMedia(yPoss.filter(p=>p.categoria==='VE'&&p.silent==='S')));
+  h+='<div style="font-size:12px;font-weight:600;color:#555;margin:4px 0 6px">In possesso (N + D)</div>';
+  h+=riga('Verticali (tutti)',etaMedia(yP.filter(p=>p.categoria==='VE')));
+  h+=riga('Code',etaMedia(yP.filter(p=>p.categoria==='CO')));
+  h+=riga('Verticali Silent',etaMedia(yP.filter(p=>p.categoria==='VE'&&p.silent==='S')));
   h+='<div style="height:0.5px;background:#f0f0f0;margin:10px 0"></div>';
   h+='<div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">Venduti</div>';
-  h+=riga('Verticali (tutti)',etaMedia(yVend.filter(p=>p.categoria==='VE')));
-  h+=riga('Code',etaMedia(yVend.filter(p=>p.categoria==='CO')));
-  h+=riga('Verticali Silent',etaMedia(yVend.filter(p=>p.categoria==='VE'&&p.silent==='S')));
+  h+=riga('Verticali (tutti)',etaMedia(yV.filter(p=>p.categoria==='VE')));
+  h+=riga('Code',etaMedia(yV.filter(p=>p.categoria==='CO')));
+  h+=riga('Verticali Silent',etaMedia(yV.filter(p=>p.categoria==='VE'&&p.silent==='S')));
   h+='</div>';
   return h;
 }
