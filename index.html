@@ -8,8 +8,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f5}
 #app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-nav{background:#fff;border-bottom:0.5px solid #e0e0e0;display:flex;position:sticky;top:0;z-index:10}
-nav button{flex:1;padding:10px 2px;font-size:10px;font-weight:500;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;color:#999;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav{background:#fff;border-bottom:0.5px solid #e0e0e0;display:flex;position:sticky;top:0;z-index:10;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none} nav button{flex:0 0 auto;padding:10px 8px;min-width:60px;font-size:10px;font-weight:500;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;color:#999;display:flex;flex-direction:column;align-items:center;gap:2px}
 nav button.active{border-bottom:2px solid #A01020;color:#A01020}
 nav button svg{width:18px;height:18px}
 main{flex:1;padding:8px 12px;padding-bottom:20px}
@@ -94,13 +94,9 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </button>
-    <button onclick="showTab('scadenze')" id="tab-scadenze">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Scadenze
-    </button>
-    <button onclick="showTab('piani')" id="tab-piani">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-      Anagrafica
+    <button onclick="showTab('clienti')" id="tab-clienti">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clienti
     </button>
     <button onclick="showTab('sync')" id="tab-sync">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -149,6 +145,7 @@ const MONTHS_SHORT=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott',
 let pianos=[],contatti=[],lastSync=null,gToken=null;
 let currentTab='dash',filterStato='ALL',searchQ='';
 let viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear();
+let clientiSezione='scadenze';
 
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch(e){}}
@@ -173,14 +170,13 @@ function load(){
 
 function showTab(t){
   currentTab=t;searchQ='';
-  ['dash','scadenze','piani','sync','analisi','import','contratti'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
+  ['dash','clienti','sync','analisi','import','contratti'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
   render();
 }
 function render(){
   const m=document.getElementById('main-content');
   if(currentTab==='dash')m.innerHTML=renderDash();
-  else if(currentTab==='scadenze')m.innerHTML=renderScadenze();
-  else if(currentTab==='piani')m.innerHTML=renderPiani();
+  else if(currentTab==='clienti')m.innerHTML=renderClienti();
   else if(currentTab==='sync')m.innerHTML=renderSync();
   else if(currentTab==='analisi')m.innerHTML=renderAnalisi();
   else if(currentTab==='import')m.innerHTML=renderImport();
@@ -337,8 +333,8 @@ function renderDash(){
     </div>
   </div>
   ${getMondayBanner()}
-  ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('scadenze')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
-  ${prox7.length?`<div class="alert-banner alert-orange" onclick="showTab('scadenze')"><div style="font-weight:500;font-size:13px;color:#854F0B">${prox7.length} scadenz${prox7.length===1?'a':'e'} nei prossimi 7 giorni</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(prox7.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
+  ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
+  ${prox7.length?`<div class="alert-banner alert-orange" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#854F0B">${prox7.length} scadenz${prox7.length===1?'a':'e'} nei prossimi 7 giorni</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(prox7.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   <div class="metric-grid">
     <div class="metric"><div class="metric-label">A noleggio</div><div class="metric-value">${nAtt}</div><div class="metric-sub">${nDep} in deposito</div></div>
     <div class="metric"><div class="metric-label">Revenue annua</div><div class="metric-value">€${Math.round(revAnno).toLocaleString('it')}</div><div class="metric-sub">da Excel</div></div>
@@ -347,8 +343,18 @@ function renderDash(){
   </div>
   ${renderComposizione()}
   ${contatti.length===0?`<div class="card" style="text-align:center;padding:20px"><div style="font-size:13px;color:#666;margin-bottom:12px">Nessun contatto sincronizzato.</div><button class="btn-primary" onclick="showTab('sync')">Collega Google Contacts →</button></div>`:''}
-  ${mc.length?`<div class="card"><div class="section-title">Questo mese — ${MONTHS[oggi.getMonth()]}</div>${mc.slice(0,6).map(s=>`<div class="summary-row" onclick="openContattoDetail('${s.contatto.id}')" style="cursor:pointer"><div><div style="font-weight:500;font-size:13px">${s.contatto.nome}</div><div style="font-size:11px;color:#666">${s.day} ${MONTHS_SHORT[s.month]}${s.label?' · '+s.label:''}</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">${s.canone?`<span style="font-weight:500;font-size:12px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div>`).join('')}${mc.length>6?`<button onclick="showTab('scadenze')" class="btn-secondary" style="margin-top:8px">Tutte le ${mc.length} →</button>`:''}</div>`:''}
+  ${mc.length?`<div class="card"><div class="section-title">Questo mese — ${MONTHS[oggi.getMonth()]}</div>${mc.slice(0,6).map(s=>`<div class="summary-row" onclick="openContattoDetail('${s.contatto.id}')" style="cursor:pointer"><div><div style="font-weight:500;font-size:13px">${s.contatto.nome}</div><div style="font-size:11px;color:#666">${s.day} ${MONTHS_SHORT[s.month]}${s.label?' · '+s.label:''}</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">${s.canone?`<span style="font-weight:500;font-size:12px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div>`).join('')}${mc.length>6?`<button onclick="showTab('clienti')" class="btn-secondary" style="margin-top:8px">Tutte le ${mc.length} →</button>`:''}</div>`:''}
   ${contatti.length>0?`<div style="text-align:center;font-size:11px;color:#999;margin-top:4px">${contatti.length} contatti · ${lastSync||''}</div>`:''}`;
+}
+
+
+function renderClienti(){
+  const btnStyle=(s)=>'padding:8px 20px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid '+(clientiSezione===s?'#A01020':'#e0e0e0')+';background:'+(clientiSezione===s?'rgba(160,16,32,0.9)':'#fff')+';color:'+(clientiSezione===s?'#fff':'#888');
+  return '<div style="display:flex;gap:8px;margin-bottom:14px">'
+    +'<button style="'+btnStyle('scadenze')+'" onclick="clientiSezione=\'scadenze\';render()">Scadenze</button>'
+    +'<button style="'+btnStyle('anagrafica')+'" onclick="clientiSezione=\'anagrafica\';render()">Anagrafica</button>'
+    +'</div>'
+    +(clientiSezione==='scadenze'?renderScadenze():renderPiani());
 }
 
 function renderScadenze(){
