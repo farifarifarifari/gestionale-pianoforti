@@ -425,12 +425,12 @@ function handleExcel(input){
       const range=XLSX.utils.decode_range(ws['!ref']||'A1');
       for(let r=range.s.r+1;r<=range.e.r;r++){
         const numCell=ws[XLSX.utils.encode_cell({r:r,c:0})];
-        const cinCell=ws[XLSX.utils.encode_cell({r:r,c:27})];
+        const cinCell=ws[XLSX.utils.encode_cell({r:r,c:28})];
         if(numCell&&cinCell&&cinCell.v) cinesiMap[parseFloat(numCell.v)]='C';
       }
       const clean=k=>String(k||'').trim();
       const num=k=>{const v=parseFloat(k);return isNaN(v)?'':v;};
-      const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA']),cinese:cinesiMap[parseFloat(r['NUMERO'])]||''})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
+      const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA']),cinese:cinesiMap[parseFloat(r['NUMERO'])]||'',annoCostr:clean(r['ANNO COSTRUZIONE'])})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
       pianos=parsed;lsSet('pf_pianos',pianos);
       status.innerHTML=`<span style="color:#A01020">✓ ${pianos.length} piani importati.</span>`;
       setTimeout(()=>showTab('dash'),1200);
