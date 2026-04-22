@@ -565,7 +565,7 @@ function renderAnalisi(){
     ${Object.entries(vendPerAnno).sort().map(([a,n])=>`<div class="summary-row"><span>${a}</span><span style="font-weight:500">${n} piani venduti</span></div>`).join('')}
   </div>`:''}
 
-  ${pianos.length===0?'<div class="empty-state">Importa il file Excel per vedere le analisi.</div>':''}`;
+  ${pianos.length===0?'<div class="empty-state">Importa il file Excel per vedere le analisi.</div>':''}` + renderYamahaEta();
 }
 
 
