@@ -714,7 +714,7 @@ const DRIVE_FOLDER_WORD='1pptpJDMbLFLYy4algs28Wp9ijO0s5L9E';
 const DRIVE_FOLDER_PDF='1EuLdKPf9djcR8OrHrKDPGWhCNYb50dom';
 let contrattoForm={
   clienteId:'',nome:'',indirizzo:'',telefono:'',cf:'',email:'',
-  marca:'',modello:'',colore:'',finitura:'',matricola:'',valore:'',silent:false,
+  marca:'',modello:'',colore:'NERO',finitura:'Lucido',matricola:'',valore:'',valoreSgabello:'90',silent:false,
   canone:'',tipoRata:'annuale',mesiRata:12,
   durataAnni:1,trasportoConsegna:'',trasportoRitiro:'',
   tipoContratto:'standard',dataInizio:'',luogo:''
@@ -836,10 +836,11 @@ function renderContrattiStep2(num){
     <div class="section-title">Pianoforte</div>`;
   h+=campoInput('Marca',f.marca,"contrattoForm.marca=this.value");
   h+=campoInput('Modello',f.modello,"contrattoForm.modello=this.value");
-  h+=campoInput('Colore',f.colore,"contrattoForm.colore=this.value");
-  h+=campoInput('Finitura',f.finitura,"contrattoForm.finitura=this.value");
+  h+='<div class="summary-row"><span>Colore</span><select onchange="contrattoForm.colore=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px"><option value="NERO" '+( f.colore==='NERO'?'selected':'')+'>Nero</option><option value="BIANCO" '+(f.colore==='BIANCO'?'selected':'')+'>Bianco</option><option value="NOCE" '+(f.colore==='NOCE'?'selected':'')+'>Noce</option><option value="MOGANO" '+(f.colore==='MOGANO'?'selected':'')+'>Mogano</option><option value="BETULLA" '+(f.colore==='BETULLA'?'selected':'')+'>Betulla</option><option value="ROSSO" '+(f.colore==='ROSSO'?'selected':'')+'>Rosso</option><option value="VERDE" '+(f.colore==='VERDE'?'selected':'')+'>Verde</option><option value="GRIGIO" '+(f.colore==='GRIGIO'?'selected':'')+'>Grigio</option><option value="BLU" '+(f.colore==='BLU'?'selected':'')+'>Blu</option><option value="FANTASIA" '+(f.colore==='FANTASIA'?'selected':'')+'>Fantasia</option><option value="ROSA" '+(f.colore==='ROSA'?'selected':'')+'>Rosa</option><option value="GIALLO" '+(f.colore==='GIALLO'?'selected':'')+'>Giallo</option></select></div>';
+  h+='<div class="summary-row"><span>Finitura</span><select onchange="contrattoForm.finitura=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px"><option value="Lucido" '+(f.finitura==='Lucido'?'selected':'')+'>Lucido</option><option value="Semilucido" '+(f.finitura==='Semilucido'?'selected':'')+'>Semilucido</option><option value="Opaco" '+(f.finitura==='Opaco'?'selected':'')+'>Opaco</option></select></div>';
   h+=campoInput('Matricola',f.matricola,"contrattoForm.matricola=this.value");
   h+=campoInput('Valore €',f.valore,"contrattoForm.valore=this.value",'number');
+  h+=campoInput('Valore sgabello €',f.valoreSgabello,"contrattoForm.valoreSgabello=this.value",'number');
   h+=`<div class="summary-row"><span>Silent</span>
     <input type="checkbox" ${f.silent?'checked':''} onchange="contrattoForm.silent=this.checked"/></div>`;
   h+=`<div class="section-title" style="margin-top:14px">Condizioni economiche</div>`;
@@ -960,7 +961,7 @@ async function generaContratto(){
       finitura:f.finitura,
       matricola:f.matricola,
       valore:f.valore,
-      valore_sgabello:'80',
+      valore_sgabello:f.valoreSgabello||'80',
       silent:f.silent,
       canone:f.canone,
       canone_mensile:String(canoneM)+'.00',
