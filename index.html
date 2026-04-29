@@ -803,7 +803,7 @@ function selezionaClienteContratto(id){
     ...contrattoForm,
     clienteId:c.id,
     nome:c.nome,
-    indirizzo:c.indirizzo||'',
+    indirizzo:(c.indirizzo||'').replace(/\n/g,' ').replace(/\s+/g,' ').trim(),
     telefono:(c.telefono||'').replace(/^\+39\s*/,''),
     email:emailM?emailM[0]:'',
     cf,marca,modello,matricola,colore,finitura,
