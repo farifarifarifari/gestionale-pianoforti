@@ -709,6 +709,7 @@ function renderYamahaEta(){
 }
 
 
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzoW18g26ayvUydAhQnCbro3QQUJSX0D2zMTmz5mMFLCZR0iTWC72mO6KoXvvQEOMQb/exec';
 const DRIVE_FOLDER_WORD='1pptpJDMbLFLYy4algs28Wp9ijO0s5L9E';
 const DRIVE_FOLDER_PDF='1EuLdKPf9djcR8OrHrKDPGWhCNYb50dom';
 let contrattoForm={
@@ -910,7 +911,6 @@ function renderContrattiStep3(num){
 }
 
 async function generaContratto(){
-  if(!gToken){googleAuth();return;}
   const btn=document.getElementById('btn-genera');
   const status=document.getElementById('contratto-status');
   btn.disabled=true;btn.textContent='Generazione...';
@@ -927,21 +927,51 @@ async function generaContratto(){
     f.tipoRata==='trimestrale'?'Trimestrali':'Mensili';
   const rataImporto=Math.round(parseFloat(f.canone||0)/12*rataMesi);
   const dataFmt=f.dataInizio?new Date(f.dataInizio).toLocaleDateString('it-IT'):'';
-  const nomeFile='Contratto_'+num+'_'+f.nome.replace(/\s+/g,'_');
+
   try{
-    status.textContent='Carico JSZip...';
-    const JSZip=await loadJSZip();
-    status.textContent='Creo documento Word...';
-    const docxBlob=await creaDocx(f,num,canoneM,rataLabel,rataImporto,dataFmt,JSZip);
-    status.textContent='Salvo Word su Drive...';
-    await uploadDrive(docxBlob,'application/vnd.openxmlformats-officedocument.wordprocessingml.document',nomeFile+'.docx',DRIVE_FOLDER_WORD);
-    status.textContent='Salvo PDF su Drive...';
-    const htmlStr=creaHtmlContratto(f,num,canoneM,rataLabel,rataImporto,dataFmt);
-    const htmlBlob=new Blob([htmlStr],{type:'text/html;charset=utf-8'});
-    await uploadDrive(htmlBlob,'application/vnd.google-apps.document',nomeFile,DRIVE_FOLDER_PDF);
-    lsSet('pf_contratto_num',String(num+1));
-    status.innerHTML='<span style="color:#A01020;font-weight:500">✓ Contratto #'+num+' salvato su Drive!</span>';
-    btn.textContent='✓ Salvato';
+    status.innerHTML='<span class="spinner"></span>Invio dati ad Apps Script...';
+    const payload={
+      numero:num,
+      nome:f.nome,
+      indirizzo:f.indirizzo,
+      telefono:f.telefono,
+      cf:f.cf||'',
+      email:f.email||'',
+      marca:f.marca,
+      modello:f.modello+(f.silent?' (SILENT)':''),
+      colore:f.colore,
+      finitura:f.finitura,
+      matricola:f.matricola,
+      valore:f.valore,
+      valore_sgabello:'80',
+      silent:f.silent,
+      canone:f.canone,
+      canone_mensile:String(canoneM)+'.00',
+      tipo_rata:rataLabel,
+      durata:f.durataAnni,
+      trasporto_consegna:f.trasportoConsegna||'0',
+      trasporto_ritiro:f.trasportoRitiro||'0',
+      tipo_contratto:f.tipoContratto,
+      data_inizio:f.dataInizio,
+      luogo:f.luogo,
+      nome_breve:f.nome.split(' ')[0],
+    };
+
+    const res=await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      body:JSON.stringify(payload),
+      headers:{'Content-Type':'text/plain'}
+    });
+    const data=await res.json();
+
+    if(data.success){
+      lsSet('pf_contratto_num',String(num+1));
+      status.innerHTML='<span style="color:#A01020;font-weight:500">✓ Contratto #'+num+' salvato su Drive!</span>'
+        +(data.pdfUrl?'<br><a href="'+data.pdfUrl+'" target="_blank" style="font-size:12px;color:#A01020">Apri PDF →</a>':'');
+      btn.textContent='✓ Salvato';
+    } else {
+      throw new Error(data.error||'Errore sconosciuto');
+    }
   }catch(err){
     status.innerHTML='<span style="color:#A32D2D">Errore: '+err.message+'</span>';
     btn.disabled=false;btn.textContent='Riprova';
