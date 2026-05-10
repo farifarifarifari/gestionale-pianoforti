@@ -206,14 +206,17 @@ async function syncContatti(){
     // Step 1: trova ID del gruppo NOLO LUNGO TERMINE
     const groupsData=await apiGet('https://people.googleapis.com/v1/contactGroups?pageSize=200&groupFields=name,memberCount');
     const gruppi=groupsData.contactGroups||[];
+    
     // Debug: mostra tutti i gruppi
     const nomiGruppi=gruppi.map(g=>g.name+'('+g.memberCount+')').join(' | ');
     setStatus('<span class="spinner"></span>Gruppi trovati: '+nomiGruppi);
+    
     const gruppo=gruppi.find(g=>{
       const n=(g.name||'').toUpperCase();
       const fn=(g.formattedName||'').toUpperCase();
       return n.includes('NOLO')||fn.includes('NOLO');
     });
+    
     if(!gruppo){
       setStatus('<span style="color:#A32D2D">Gruppo NOLO non trovato. Gruppi disponibili: '+nomiGruppi+'</span>');
       return;
@@ -222,6 +225,7 @@ async function syncContatti(){
     // Step 2: prendi i membri del gruppo
     const membData=await apiGet('https://people.googleapis.com/v1/'+gruppo.resourceName+'?maxMembers=500');
     const members=membData.memberResourceNames||[];
+    
     if(!members.length){
       setStatus('<span style="color:#854F0B">Gruppo vuoto.</span>');
       return;
