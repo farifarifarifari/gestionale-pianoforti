@@ -1262,21 +1262,21 @@ function renderFormConcerto(){
   h+=campoInput('Titolo',f.titolo,'concertoForm.titolo=this.value');
   h+=campoInput('Data',f.data,'concertoForm.data=this.value','date');
   h+=campoInput('Luogo',f.luogo,'concertoForm.luogo=this.value');
-  h+=campoInput('Location (nome)',f.location,'concertoForm.location=this.value');
-  h+=campoInput('Indirizzo location',f.indirizzo,'concertoForm.indirizzo=this.value');
+  h+=campoInput('Location (Nome)',f.location,'concertoForm.location=this.value');
+  h+=campoInput('Indirizzo Location',f.indirizzo,'concertoForm.indirizzo=this.value');
 
   h+='<div class="section-title" style="margin-top:14px">Pianoforte</div>';
   h+='<div class="summary-row"><span>Tipo pianoforte</span><select onchange="concertoForm.pianoforte=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px">'+TIPI_PIANO.map(t=>'<option value="'+t+'" '+(f.pianoforte===t?'selected':'')+'>'+t+'</option>').join('')+'</select></div>';
-  h+=campoInput('Compenso (IVA ESCLUSA)',f.compenso,'concertoForm.compenso=this.value','number');
+  h+=campoInput('Compenso (IVA Esclusa)',f.compenso,'concertoForm.compenso=this.value','number');
   h+='<div class="summary-row"><span>Metodo pagamento</span><select onchange="concertoForm.metodoPagamento=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px"><option value="Fattura" '+(f.metodoPagamento==="Fattura"?'selected':'')+'>Fattura</option><option value="Cash" '+(f.metodoPagamento==="Cash"?'selected':'')+'>Cash</option><option value="Gratis" '+(f.metodoPagamento==="Gratis"?'selected':'')+'>Gratis</option><option value="Sponsorizzazione" '+(f.metodoPagamento==="Sponsorizzazione"?'selected':'')+'>Sponsorizzazione</option></select></div>';
 
   h+='<div class="section-title" style="margin-top:14px">Logistica</div>';
-  h+=campoInput('Data consegna',f.dataConsegna,'concertoForm.dataConsegna=this.value','date');
-  h+=campoInput('Ora consegna',f.oraConsegna,'concertoForm.oraConsegna=this.value','time');
-  h+=campoInput('Data ritiro',f.dataRitiro,'concertoForm.dataRitiro=this.value','date');
-  h+=campoInput('Ora ritiro',f.oraRitiro,'concertoForm.oraRitiro=this.value','time');
+  h+=campoInput('Data Consegna',f.dataConsegna,'concertoForm.dataConsegna=this.value','date');
+  h+=campoInput('Ora Consegna',f.oraConsegna,'concertoForm.oraConsegna=this.value','time');
+  h+=campoInput('Data Ritiro',f.dataRitiro,'concertoForm.dataRitiro=this.value','date');
+  h+=campoInput('Ora Ritiro',f.oraRitiro,'concertoForm.oraRitiro=this.value','time');
 
-  h+='<div class="section-title" style="margin-top:14px">Contatti telefonici</div>';
+  h+='<div class="section-title" style="margin-top:14px">Contatti Telefonici</div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:6px"><input type="text" placeholder="Nome 1" value="'+f.contatto1nome+'" onchange="concertoForm.contatto1nome=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/><input type="tel" placeholder="Telefono" value="'+f.contatto1tel+'" onchange="concertoForm.contatto1tel=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:6px"><input type="text" placeholder="Nome 2" value="'+f.contatto2nome+'" onchange="concertoForm.contatto2nome=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/><input type="tel" placeholder="Telefono" value="'+f.contatto2tel+'" onchange="concertoForm.contatto2tel=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:14px"><input type="text" placeholder="Nome 3" value="'+f.contatto3nome+'" onchange="concertoForm.contatto3nome=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/><input type="tel" placeholder="Telefono" value="'+f.contatto3tel+'" onchange="concertoForm.contatto3tel=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/></div>';
