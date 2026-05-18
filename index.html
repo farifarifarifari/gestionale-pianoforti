@@ -1172,7 +1172,7 @@ let rubricaCompleta=[];
 let referenteSearch={1:'',2:'',3:''};
 async function caricaRubricaCompleta(){
   if(!gToken){googleAuth();return;}
-  if(rubricaCompleta.length){render();return;}
+  if(rubricaCompleta.length){rilanciaRicercheReferenti();return;}
   try{
     let people=[],pageToken='';
     do{
@@ -1186,10 +1186,17 @@ async function caricaRubricaCompleta(){
       pageToken=data.nextPageToken||'';
     }while(pageToken);
     rubricaCompleta=people;
-    render();
+    rilanciaRicercheReferenti();
   }catch(err){
     alert('Errore caricamento rubrica: '+err.message);
   }
+}
+function rilanciaRicercheReferenti(){
+  [1,2,3].forEach(n=>{
+    const inp=document.getElementById('refsearch'+n);
+    if(inp&&inp.value) cercaReferente(n,inp.value);
+  });
+}
 }
 let concertiMonth=new Date().getMonth();
 let concertiYear=new Date().getFullYear();
