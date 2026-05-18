@@ -1316,6 +1316,9 @@ function renderFormConcerto(){
     +'<option value="">👤</option>'+opts+'</select>'
     +'</div>';
 }
+  h+=renderReferenteRow(1,f.contatto1nome,f.contatto1tel);
+  h+=renderReferenteRow(2,f.contatto2nome,f.contatto2tel);
+  h+=renderReferenteRow(3,f.contatto3nome,f.contatto3tel);
   h+='<div class="section-title">Note</div>';
   h+='<textarea onchange="concertoForm.note=this.value" placeholder="Note..." style="width:100%;height:80px;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-bottom:14px">'+f.note+'</textarea>';
 
