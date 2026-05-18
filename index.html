@@ -1195,14 +1195,27 @@ async function syncConcerti(){
   try{
     const from=new Date(new Date().getFullYear()-1,0,1).toISOString();
     const to=new Date(new Date().getFullYear()+2,11,31).toISOString();
-    const url='https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin='+encodeURIComponent(from)+'&timeMax='+encodeURIComponent(to)+'&singleEvents=true&orderBy=startTime&maxResults=500';
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
-    const data=await res.json();
-    if(data.error) throw new Error(data.error.message);
-    concerti=(data.items||[]).filter(e=>KEYWORDS_CONCERTI.some(k=>(e.summary||'').toLowerCase().includes(k))).map(e=>{
+
+    // 1. Prende lista di tutti i calendari
+    const calListRes=await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',{headers:{Authorization:'Bearer '+gToken}});
+    const calList=await calListRes.json();
+    if(calList.error) throw new Error(calList.error.message);
+
+    // 2. Per ogni calendario recupera gli eventi
+    const allItems=[];
+    for(const cal of (calList.items||[])){
+      const url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal.id)+'/events?timeMin='+encodeURIComponent(from)+'&timeMax='+encodeURIComponent(to)+'&singleEvents=true&orderBy=startTime&maxResults=500';
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
+      const data=await res.json();
+      if(!data.error)(data.items||[]).forEach(e=>allItems.push(e));
+    }
+
+    // 3. Filtra per keyword concerti
+    concerti=allItems.filter(e=>KEYWORDS_CONCERTI.some(k=>(e.summary||'').toLowerCase().includes(k))).map(e=>{
       const p=parseNotesConcerto(e.description||'');
       return {id:e.id,titolo:e.summary||'',data:(e.start.date||e.start.dateTime||'').substring(0,10),luogo:e.location||'',location:p.location||'',indirizzo:p.indirizzo||'',pianoforte:p.pianoforte||'',compenso:p.compenso||'',metodoPagamento:p.metodoPagamento||'',dataConsegna:p.dataConsegna||'',oraConsegna:p.oraConsegna||'',dataRitiro:p.dataRitiro||'',oraRitiro:p.oraRitiro||'',contatto1nome:p.contatto1nome||'',contatto1tel:p.contatto1tel||'',contatto2nome:p.contatto2nome||'',contatto2tel:p.contatto2tel||'',contatto3nome:p.contatto3nome||'',contatto3tel:p.contatto3tel||'',note:p.note||''};
     });
+
     lsSet('pf_concerti',concerti);
     if(st) st.innerHTML='<span style="color:#A01020">✓ '+concerti.length+' eventi</span>';
     setTimeout(()=>render(),800);
