@@ -1350,7 +1350,7 @@ function renderReferenteRow(n,nome,tel){
       +'<div id="refresults'+n+'"></div>'
       +'</div>';
   }
-  function cercaReferente(n,q){
+window.selezionaReferente=function(n,nome,tel){
     const box=document.getElementById('refresults'+n);
     if(!box) return;
     q=(q||'').toLowerCase().trim();
