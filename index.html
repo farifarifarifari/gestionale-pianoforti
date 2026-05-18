@@ -1163,6 +1163,29 @@ Del valore di € ${f.valore} + Sgabello Regolabile Professionale <b>INCLUSO</b>
 const KEYWORDS_CONCERTI=['concerto','saggio','recital','masterclass'];
 const TIPI_PIANO=['C1','C2','C3','C5','C6','C7','GRANCODA','VERTICALE','VERTICALE BIANCO','CODA BIANCO','DIGITALE'];
 let concerti=[];
+let rubricaCompleta=[];
+let referenteSearch={1:'',2:'',3:''};
+async function caricaRubricaCompleta(){
+  if(!gToken){googleAuth();return;}
+  if(rubricaCompleta.length){render();return;}
+  try{
+    let people=[],pageToken='';
+    do{
+      const url='https://people.googleapis.com/v1/people/me/connections?pageSize=1000&personFields=names,phoneNumbers'+(pageToken?'&pageToken='+pageToken:'');
+      const data=await apiGet(url);
+      (data.connections||[]).forEach(p=>{
+        const nome=p.names&&p.names[0]?p.names[0].displayName:'';
+        const tel=p.phoneNumbers&&p.phoneNumbers[0]?p.phoneNumbers[0].value:'';
+        if(nome) people.push({nome:nome,telefono:tel});
+      });
+      pageToken=data.nextPageToken||'';
+    }while(pageToken);
+    rubricaCompleta=people;
+    render();
+  }catch(err){
+    alert('Errore caricamento rubrica: '+err.message);
+  }
+}
 let concertiMonth=new Date().getMonth();
 let concertiYear=new Date().getFullYear();
 let showFormConcerto=false;
