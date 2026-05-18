@@ -1168,6 +1168,29 @@ Del valore di € ${f.valore} + Sgabello Regolabile Professionale <b>INCLUSO</b>
 const KEYWORDS_CONCERTI=['concerto','saggio','recital','masterclass'];
 const TIPI_PIANO=['C1','C2','C3','C5','C6','C7','GRANCODA','VERTICALE','VERTICALE BIANCO','CODA BIANCO','DIGITALE'];
 let concerti=[];
+  function cercaReferente(n,q){
+  const box=document.getElementById('refresults'+n);
+  if(!box) return;
+  q=(q||'').toLowerCase().trim();
+  if(q.length<2){box.innerHTML='';return;}
+  if(!rubricaCompleta.length){box.innerHTML='<div style="padding:6px 8px;font-size:12px;color:#888">Carico rubrica...</div>';caricaRubricaCompleta();return;}
+  const trovati=rubricaCompleta.filter(c=>c.nome.toLowerCase().includes(q)).slice(0,8);
+  if(!trovati.length){box.innerHTML='<div style="padding:6px 8px;font-size:12px;color:#888;border:0.5px solid #e0e0e0;border-radius:6px;margin-top:4px">Nessun contatto</div>';return;}
+  box.innerHTML='<div style="border:0.5px solid #e0e0e0;border-radius:6px;margin-top:4px;max-height:160px;overflow-y:auto">'
+    +trovati.map(c=>'<div onclick="selezionaReferente('+n+',\''+c.nome.replace(/'/g,"")+'\',\''+(c.telefono||'').replace(/'/g,"")+'\')" style="padding:6px 8px;font-size:12px;cursor:pointer;border-bottom:0.5px solid #f0f0f0">'+c.nome+(c.telefono?' <span style="color:#888">'+c.telefono+'</span>':'')+'</div>').join('')
+    +'</div>';
+}
+function selezionaReferente(n,nome,tel){
+  concertoForm['contatto'+n+'nome']=nome;
+  concertoForm['contatto'+n+'tel']=tel;
+  render();
+}
+function rilanciaRicercheReferenti(){
+  [1,2,3].forEach(function(n){
+    const inp=document.getElementById('refsearch'+n);
+    if(inp&&inp.value) cercaReferente(n,inp.value);
+  });
+}
 let rubricaCompleta=[];
 let referenteSearch={1:'',2:'',3:''};
 async function caricaRubricaCompleta(){
