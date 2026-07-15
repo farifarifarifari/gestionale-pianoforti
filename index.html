@@ -171,6 +171,11 @@ function load(){
     if(tok){
       gToken=tok;lsSet('pf_gtoken',tok);
       history.replaceState(null,'',window.location.pathname);
+      if(lsGet('pf_return_to_suite')){
+        lsDel('pf_return_to_suite');
+        window.location.href='https://farifarifarifari.github.io/playpiano-suite/?tab=sync';
+        return;
+      }
       setTimeout(()=>{showTab('sync');syncContatti();},500);
     }
   }
@@ -195,7 +200,16 @@ function render(){
 function googleAuth(){
   const redirectUri=window.location.origin+window.location.pathname;
   const params=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:redirectUri,response_type:'token',scope:SCOPE,prompt:'consent'});
-  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
+  const authUrl='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
+  if(window.self!==window.top){
+    // Siamo dentro un iframe (es. Playpiano Suite). Google rifiuta di mostrare
+    // la pagina di login se rileva di essere incorniciata (protezione anti-clickjacking),
+    // quindi navighiamo la finestra TOP e segnamo di tornare alla Suite dopo il login.
+    lsSet('pf_return_to_suite','1');
+    window.top.location.href=authUrl;
+  }else{
+    window.location.href=authUrl;
+  }
 }
 
 async function apiGet(url){
