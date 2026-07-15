@@ -173,7 +173,9 @@ function load(){
       history.replaceState(null,'',window.location.pathname);
       if(lsGet('pf_return_to_suite')){
         lsDel('pf_return_to_suite');
-        window.location.href='https://farifarifarifari.github.io/playpiano-suite/?tab=sync';
+        const backTab=lsGet('pf_return_tab')||'sync';
+        lsDel('pf_return_tab');
+        window.location.href='https://farifarifarifari.github.io/playpiano-suite/?tab='+backTab;
         return;
       }
       setTimeout(()=>{showTab('sync');syncContatti();},500);
@@ -204,8 +206,9 @@ function googleAuth(){
   if(window.self!==window.top){
     // Siamo dentro un iframe (es. Playpiano Suite). Google rifiuta di mostrare
     // la pagina di login se rileva di essere incorniciata (protezione anti-clickjacking),
-    // quindi navighiamo la finestra TOP e segnamo di tornare alla Suite dopo il login.
+    // quindi navighiamo la finestra TOP e segnamo tab e intenzione di tornare alla Suite dopo il login.
     lsSet('pf_return_to_suite','1');
+    lsSet('pf_return_tab',currentTab);
     window.top.location.href=authUrl;
   }else{
     window.location.href=authUrl;
@@ -218,6 +221,17 @@ async function apiGet(url){
   const data=await res.json();
   if(data.error)throw new Error(data.error.message);
   return data;
+}
+
+// Riconosce un token Google scaduto/non valido in una risposta JSON e, se e' il caso,
+// pulisce il token salvato e riavvia da solo il login (invece di limitarsi a mostrare l'errore).
+function handleGoogleAuthError(data){
+  if(data&&data.error&&(data.error.code===401||/invalid authentication credentials/i.test(data.error.message||''))){
+    gToken=null;lsDel('pf_gtoken');
+    googleAuth();
+    return true;
+  }
+  return false;
 }
 
 async function syncContatti(){
@@ -1039,6 +1053,7 @@ async function uploadDrive(blob,mime,name,folder){
   const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
     method:'POST',headers:{Authorization:'Bearer '+gToken},body:form
   });
+  if(res.status===401){gToken=null;lsDel('pf_gtoken');googleAuth();throw new Error('Sessione Google scaduta, riconnessione in corso...');}
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Upload fallito');}
   return res.json();
 }
@@ -1270,6 +1285,7 @@ async function syncConcerti(){
     // 1. Prende lista di tutti i calendari
     const calListRes=await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',{headers:{Authorization:'Bearer '+gToken}});
     const calList=await calListRes.json();
+    if(handleGoogleAuthError(calList))return;
     if(calList.error) throw new Error(calList.error.message);
 
     // 2. Per ogni calendario recupera gli eventi
@@ -1278,6 +1294,7 @@ async function syncConcerti(){
       const url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal.id)+'/events?timeMin='+encodeURIComponent(from)+'&timeMax='+encodeURIComponent(to)+'&singleEvents=true&orderBy=startTime&maxResults=500';
       const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
       const data=await res.json();
+      if(handleGoogleAuthError(data))return;
       if(!data.error)(data.items||[]).forEach(e=>allItems.push(e));
     }
 
@@ -1306,6 +1323,7 @@ async function salvaEventoCalendar(){
     const event={summary:f.tipo.charAt(0).toUpperCase()+f.tipo.slice(1)+' - '+f.titolo,location:f.luogo||'',description:notes,start:{date:f.data},end:{date:f.data}};
     const res=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},body:JSON.stringify(event)});
     const data=await res.json();
+    if(handleGoogleAuthError(data))return;
     if(data.error) throw new Error(data.error.message);
     showFormConcerto=false;
     concertoForm={titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C2',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
@@ -1476,6 +1494,7 @@ async function aggiornaEventoCalendar(){
       body:JSON.stringify(event)
     });
     const data=await res.json();
+    if(handleGoogleAuthError(data))return;
     if(data.error) throw new Error(data.error.message);
     editingConcertoId=null;
     showFormConcerto=false;
