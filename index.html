@@ -1195,6 +1195,9 @@ Del valore di € ${f.valore} + Sgabello Regolabile Professionale <b>INCLUSO</b>
 
 
 const KEYWORDS_CONCERTI=['concerto','saggio','recital','masterclass'];
+// Marcatori dei campi che l'app scrive nella descrizione: se presenti, l'evento e'
+// riconosciuto come "concerto" anche se il titolo non contiene le parole chiave sopra.
+const DESC_MARKERS_CONCERTI=['pianoforte:','compenso:','location:','indirizzo:','pagamento:','consegna:','ritiro:','referente1:','referente2:','referente3:'];
 const TIPI_PIANO=['C1','C2','C3','C5','C6','C7','GRANCODA','VERTICALE','VERTICALE BIANCO','CODA BIANCO','DIGITALE'];
 let concerti=[];
   function cercaReferente(n,q){
@@ -1288,18 +1291,28 @@ async function syncConcerti(){
     if(handleGoogleAuthError(calList))return;
     if(calList.error) throw new Error(calList.error.message);
 
-    // 2. Per ogni calendario recupera gli eventi
+    // 2. Per ogni calendario recupera TUTTI gli eventi (con paginazione: un calendario
+    // pieno di storico puo' superare i 500 eventi per pagina, tagliando fuori quelli piu' recenti)
     const allItems=[];
     for(const cal of (calList.items||[])){
-      const url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal.id)+'/events?timeMin='+encodeURIComponent(from)+'&timeMax='+encodeURIComponent(to)+'&singleEvents=true&orderBy=startTime&maxResults=500';
-      const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
-      const data=await res.json();
-      if(handleGoogleAuthError(data))return;
-      if(!data.error)(data.items||[]).forEach(e=>allItems.push(e));
+      let pageToken='';
+      do{
+        const url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal.id)+'/events?timeMin='+encodeURIComponent(from)+'&timeMax='+encodeURIComponent(to)+'&singleEvents=true&orderBy=startTime&maxResults=500'+(pageToken?'&pageToken='+encodeURIComponent(pageToken):'');
+        const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
+        const data=await res.json();
+        if(handleGoogleAuthError(data))return;
+        if(data.error) break;
+        (data.items||[]).forEach(e=>allItems.push(e));
+        pageToken=data.nextPageToken||'';
+      }while(pageToken);
     }
 
-    // 3. Filtra per keyword concerti
-    concerti=allItems.filter(e=>KEYWORDS_CONCERTI.some(k=>(e.summary||'').toLowerCase().includes(k))).map(e=>{
+    // 3. Filtra per keyword nel titolo OPPURE marcatori strutturati nella descrizione
+    concerti=allItems.filter(e=>{
+      const titolo=(e.summary||'').toLowerCase();
+      const desc=(e.description||'').toLowerCase();
+      return KEYWORDS_CONCERTI.some(k=>titolo.includes(k))||DESC_MARKERS_CONCERTI.some(k=>desc.includes(k));
+    }).map(e=>{
       const p=parseNotesConcerto(e.description||'');
       return {id:e.id,titolo:e.summary||'',data:(e.start.date||e.start.dateTime||'').substring(0,10),luogo:e.location||'',location:p.location||'',indirizzo:p.indirizzo||'',pianoforte:p.pianoforte||'',compenso:p.compenso||'',metodoPagamento:p.metodoPagamento||'',dataConsegna:p.dataConsegna||'',oraConsegna:p.oraConsegna||'',dataRitiro:p.dataRitiro||'',oraRitiro:p.oraRitiro||'',contatto1nome:p.contatto1nome||'',contatto1tel:p.contatto1tel||'',contatto2nome:p.contatto2nome||'',contatto2tel:p.contatto2tel||'',contatto3nome:p.contatto3nome||'',contatto3tel:p.contatto3tel||'',note:p.note||''};
     });
