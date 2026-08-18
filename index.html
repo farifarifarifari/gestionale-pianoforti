@@ -825,8 +825,18 @@ function selezionaClienteContratto(id){
     if(cfMatch) cf=cfMatch[1].toUpperCase();
 
     // "Yamaha U3A Matricola 4272290"
-    const pianoMatch=l.match(/^(\S+)\s+(\S+)\s+Matricola\s+(\d+)/i);
-    if(pianoMatch){marca=pianoMatch[1].toUpperCase();modello=pianoMatch[2].toUpperCase();matricola=pianoMatch[3];}
+    // Riconosce marca/modello/matricola in modo flessibile: gestisce prefisso "PIANOFORTE",
+    // parola "modello" opzionale, qualsiasi parola extra tra marca e Matricola (SILENT, colori,
+    // kit...), matricole alfanumeriche. Se non trova marca/modello, recupera almeno la matricola.
+    const pianoMatch=l.match(/^(?:PIANOFORTE\s+)?(\S+)\s+(?:modello\s+)?(.*?)\s*-?\s*Matricola[:\s]+([A-Za-z0-9]+)/i);
+    if(pianoMatch){
+      marca=pianoMatch[1].toUpperCase();
+      modello=pianoMatch[2].replace(/\bSILENT\b/gi,'').replace(/\s+/g,' ').trim().toUpperCase();
+      matricola=pianoMatch[3].toUpperCase();
+    } else if(!matricola){
+      const matricolaFallback=l.match(/Matricola[:\s]+([A-Za-z0-9]+)/i);
+      if(matricolaFallback) matricola=matricolaFallback[1].toUpperCase();
+    }
 
     // "Canone Annuo € 660 + € 200 Trasporto"
     const canoneMatch=l.match(/Canone\s+Annuo[^\d]*(\d+)/i);
@@ -848,7 +858,9 @@ function selezionaClienteContratto(id){
     indirizzo:(c.indirizzo||'').replace(/\n/g,' ').replace(/\s+/g,' ').trim(),
     telefono:(c.telefono||'').replace(/^\+39\s*/,''),
     email:emailM?emailM[0]:'',
-    cf,marca,modello,matricola,colore,finitura,
+    cf,marca,modello,matricola,
+    colore:colore||contrattoForm.colore,
+    finitura:finitura||contrattoForm.finitura,
     canone,
     trasportoConsegna:trasporto,
     silent:silentM,
