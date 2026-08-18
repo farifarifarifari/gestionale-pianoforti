@@ -142,6 +142,19 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
   </div>
 </div>
 
+<div id="pagato-modal" style="display:none" class="wa-modal" onclick="closePagatoModal(event)">
+  <div class="wa-box">
+    <div class="wa-nome" id="pagato-nome"></div>
+    <div class="wa-sub">Segna il pagamento e, se vuoi, aggiungi una nota</div>
+    <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">Anno pagato</label>
+    <input id="pagato-anno" type="number" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit"/>
+    <label style="font-size:11px;color:#888;display:block;margin:12px 0 4px">Nota (facoltativa)</label>
+    <textarea id="pagato-nota" maxlength="500" placeholder="Es. pagato con due settimane di ritardo, saldato in due tranche..." style="height:110px"></textarea>
+    <button class="btn-wa" style="background:#2e7d32" onclick="salvaPagato()">Salva pagamento</button>
+    <button onclick="closePagatoModal()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;color:#666">Annulla</button>
+  </div>
+</div>
+
 <div id="overlay" class="overlay" style="display:none" onclick="overlayClick(event)">
   <div class="sheet" id="sheet-content"></div>
 </div>
@@ -407,7 +420,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#A01020">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="Segna pagamento" ${lsGet('pf_pagato_'+s.contatto.id)?'checked':''} onclick="event.stopPropagation();togglePagato('${s.contatto.id}','${s.contatto.nome}',event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${lsGet('pf_pagato_'+s.contatto.id)?'<div><span class="paid-badge">\u2713 Pagato: '+lsGet('pf_pagato_'+s.contatto.id)+'</span></div>':''}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="Segna pagamento" ${getPagati(s.contatto.id).length?'checked':''} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}',event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -621,17 +634,38 @@ function renderAnalisi(){
 
 let waCurrentTel='';
 let waCurrentContactId='';
-function togglePagato(cid,nome,e){
+let pagatoCurrentContactId='';
+function getPagati(cid){
+  try{return JSON.parse(lsGet('pf_pagato_'+cid)||'[]');}catch(e){return [];}
+}
+function pagatoBadgeHtml(cid){
+  const arr=getPagati(cid);
+  if(!arr.length) return '';
+  const anni=arr.map(x=>x.anno).join(', ');
+  const tip=arr.map(x=>x.anno+(x.nota?': '+x.nota:'')).join(' | ').replace(/"/g,'&quot;');
+  return '<div><span class="paid-badge" title="'+tip+'">\u2713 Pagato: '+anni+'</span></div>';
+}
+function apriPagatoModal(cid,nome,e){
   if(e){e.preventDefault();e.stopPropagation();}
-  const k='pf_pagato_'+cid;
-  const esistenti=(lsGet(k)||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const anno=prompt('Segna pagamento per '+nome+'\n\nAnno pagato:',String(new Date().getFullYear()));
-  if(anno===null) return;
-  const annoNum=parseInt(anno,10);
-  if(!annoNum||annoNum<2000||annoNum>2100){alert('Anno non valido');return;}
-  if(!esistenti.includes(String(annoNum))) esistenti.push(String(annoNum));
-  esistenti.sort();
-  lsSet(k,esistenti.join(', '));
+  pagatoCurrentContactId=cid;
+  document.getElementById('pagato-nome').textContent=nome;
+  document.getElementById('pagato-anno').value=new Date().getFullYear();
+  document.getElementById('pagato-nota').value='';
+  document.getElementById('pagato-modal').style.display='flex';
+}
+function closePagatoModal(e){
+  if(!e||e.target===document.getElementById('pagato-modal')) document.getElementById('pagato-modal').style.display='none';
+}
+function salvaPagato(){
+  const anno=parseInt(document.getElementById('pagato-anno').value,10);
+  if(!anno||anno<2000||anno>2100){alert('Anno non valido');return;}
+  const nota=document.getElementById('pagato-nota').value.trim();
+  const esistenti=getPagati(pagatoCurrentContactId);
+  const idx=esistenti.findIndex(x=>x.anno===anno);
+  if(idx>-1) esistenti[idx]={anno,nota}; else esistenti.push({anno,nota});
+  esistenti.sort((a,b)=>a.anno-b.anno);
+  lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(esistenti));
+  document.getElementById('pagato-modal').style.display='none';
   render();
 }
 function openWa(nome,tel,dataStr,canone,cid){
