@@ -87,6 +87,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .btn-wa:hover{background:#1da851}
 .btn-wa-small{background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
 .sent-badge{font-size:10px;color:#A01020;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
+.paid-badge{font-size:10px;color:#2e7d32;background:#eaf7ea;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
 .hero-card{background:rgba(160,16,32,0.90);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end}
 .report-banner{background:#fff;border:1.5px solid #A01020;border-radius:12px;padding:14px;margin-bottom:12px}
 </style>
@@ -406,7 +407,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#A01020">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between">${s.contatto.telefono}<button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="Segna pagamento" ${lsGet('pf_pagato_'+s.contatto.id)?'checked':''} onclick="event.stopPropagation();togglePagato('${s.contatto.id}','${s.contatto.nome}',event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${lsGet('pf_pagato_'+s.contatto.id)?'<div><span class="paid-badge">\u2713 Pagato: '+lsGet('pf_pagato_'+s.contatto.id)+'</span></div>':''}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -620,6 +621,19 @@ function renderAnalisi(){
 
 let waCurrentTel='';
 let waCurrentContactId='';
+function togglePagato(cid,nome,e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const k='pf_pagato_'+cid;
+  const esistenti=(lsGet(k)||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const anno=prompt('Segna pagamento per '+nome+'\n\nAnno pagato:',String(new Date().getFullYear()));
+  if(anno===null) return;
+  const annoNum=parseInt(anno,10);
+  if(!annoNum||annoNum<2000||annoNum>2100){alert('Anno non valido');return;}
+  if(!esistenti.includes(String(annoNum))) esistenti.push(String(annoNum));
+  esistenti.sort();
+  lsSet(k,esistenti.join(', '));
+  render();
+}
 function openWa(nome,tel,dataStr,canone,cid){
   waCurrentTel=tel?tel.replace(/\s/g,''):'';
   waCurrentContactId=cid||'';
