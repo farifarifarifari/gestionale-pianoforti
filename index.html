@@ -751,7 +751,7 @@ const DRIVE_FOLDER_WORD='1pptpJDMbLFLYy4algs28Wp9ijO0s5L9E';
 const DRIVE_FOLDER_PDF='1EuLdKPf9djcR8OrHrKDPGWhCNYb50dom';
 let contrattoForm={
   clienteId:'',nome:'',indirizzo:'',telefono:'',cf:'',email:'',
-  marca:'',modello:'',colore:'NERO',finitura:'Lucido',matricola:'',valore:'',valoreSgabello:'90',silent:false,
+  marca:'',modello:'',colore:'NERO',finitura:'Lucido',matricola:'',valore:'',valoreSgabello:'90',silent:false,prezzoInContratto:true,
   canone:'',tipoRata:'annuale',mesiRata:12,
   durataAnni:1,trasportoConsegna:'',trasportoRitiro:'',
   tipoContratto:'standard',dataInizio:'',luogo:''
@@ -897,6 +897,8 @@ function renderContrattiStep2(num){
   h+=campoInput('Valore sgabello €',f.valoreSgabello,"contrattoForm.valoreSgabello=this.value",'number');
   h+=`<div class="summary-row"><span>Silent</span>
     <input type="checkbox" ${f.silent?'checked':''} onchange="contrattoForm.silent=this.checked"/></div>`;
+  h+=`<div class="summary-row"><span>Prezzo in Contratto</span>
+    <input type="checkbox" ${f.prezzoInContratto!==false?'checked':''} onchange="contrattoForm.prezzoInContratto=this.checked"/></div>`;
   h+=`<div class="section-title" style="margin-top:14px">Condizioni economiche</div>`;
   h+=campoInput('Canone annuo €',f.canone,"contrattoForm.canone=this.value",'number');
   h+=`<div class="summary-row"><span>Tipo rata</span>
@@ -1017,6 +1019,7 @@ async function generaContratto(){
       valore:f.valore,
       valore_sgabello:f.valoreSgabello||'80',
       silent:f.silent,
+      prezzo_in_contratto:f.prezzoInContratto!==false,
       canone:f.canone,
       canone_mensile:String(canoneM)+'.00',
       tipo_rata:rataLabel,
