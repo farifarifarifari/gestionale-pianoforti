@@ -151,6 +151,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
     <label style="font-size:11px;color:#888;display:block;margin:12px 0 4px">Nota (facoltativa)</label>
     <textarea id="pagato-nota" maxlength="500" placeholder="Es. pagato con due settimane di ritardo, saldato in due tranche..." style="height:110px"></textarea>
     <button class="btn-wa" style="background:#2e7d32" onclick="salvaPagato()">Salva pagamento</button>
+    <button id="pagato-rimuovi-btn" onclick="rimuoviPagato()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #A32D2D;border-radius:8px;font-size:13px;cursor:pointer;color:#A32D2D;display:none">Rimuovi flag pagamento</button>
     <button onclick="closePagatoModal()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;color:#666">Annulla</button>
   </div>
 </div>
@@ -655,7 +656,14 @@ function apriPagatoModal(cid,nome,e){
   document.getElementById('pagato-nome').textContent=nome;
   document.getElementById('pagato-anno').value=new Date().getFullYear();
   document.getElementById('pagato-nota').value='';
+  document.getElementById('pagato-rimuovi-btn').style.display=getPagati(cid).length?'block':'none';
   document.getElementById('pagato-modal').style.display='flex';
+}
+function rimuoviPagato(){
+  if(!confirm('Togliere il flag pagamento e cancellare le note salvate per questo cliente?'))return;
+  lsDel('pf_pagato_'+pagatoCurrentContactId);
+  document.getElementById('pagato-modal').style.display='none';
+  render();
 }
 function closePagatoModal(e){
   if(!e||e.target===document.getElementById('pagato-modal')) document.getElementById('pagato-modal').style.display='none';
