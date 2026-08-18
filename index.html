@@ -642,8 +642,12 @@ function pagatoBadgeHtml(cid){
   const arr=getPagati(cid);
   if(!arr.length) return '';
   const anni=arr.map(x=>x.anno).join(', ');
-  const tip=arr.map(x=>x.anno+(x.nota?': '+x.nota:'')).join(' | ').replace(/"/g,'&quot;');
-  return '<div><span class="paid-badge" title="'+tip+'">\u2713 Pagato: '+anni+'</span></div>';
+  let h='<div><span class="paid-badge">\u2713 Pagato: '+anni+'</span></div>';
+  arr.filter(x=>x.nota).forEach(x=>{
+    const notaSafe=x.nota.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    h+='<div style="font-size:11px;color:#666;margin-top:2px;padding-left:2px;line-height:1.4">'+x.anno+': '+notaSafe+'</div>';
+  });
+  return h;
 }
 function apriPagatoModal(cid,nome,e){
   if(e){e.preventDefault();e.stopPropagation();}
