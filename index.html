@@ -208,6 +208,10 @@ function showTab(t){
   render();
 }
 function render(){
+  const active=document.activeElement;
+  const activeId=active&&active.id?active.id:null;
+  const selStart=active&&typeof active.selectionStart==='number'?active.selectionStart:null;
+  const selEnd=active&&typeof active.selectionEnd==='number'?active.selectionEnd:null;
   const m=document.getElementById('main-content');
   if(currentTab==='dash')m.innerHTML=renderDash();
   else if(currentTab==='clienti')m.innerHTML=renderClienti();
@@ -217,6 +221,15 @@ function render(){
   else if(currentTab==='contratti')m.innerHTML=renderContratti();
   else if(currentTab==='concerti')m.innerHTML=renderConcerti();
   else if(currentTab==='disponibilita')m.innerHTML=renderDisponibilita();
+  if(activeId){
+    const el=document.getElementById(activeId);
+    if(el&&el.focus){
+      el.focus();
+      if(selStart!==null&&el.setSelectionRange){
+        try{el.setSelectionRange(selStart,selEnd);}catch(e){}
+      }
+    }
+  }
 }
 
 let dispMarca='';
@@ -233,7 +246,7 @@ function renderDisponibilita(){
       <option value="">Tutte le marche (${pianos.length})</option>
       ${marche.map(m=>`<option value="${m}" ${dispMarca===m?'selected':''}>${m} (${pianos.filter(p=>(p.marca||'').trim()===m).length})</option>`).join('')}
     </select>
-    <input type="text" placeholder="Cerca per numero, modello o matricola..." value="${searchQ||''}" oninput="searchQ=this.value;render()" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:12px"/>
+    <input id="disp-search" type="text" placeholder="Cerca per numero, modello o matricola..." value="${searchQ||''}" oninput="searchQ=this.value;render()" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:12px"/>
     <div style="font-size:12px;color:#888;margin-bottom:10px">${list.length} pianoforti trovati</div>
   </div>`;
   if(!list.length){
