@@ -87,6 +87,8 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .btn-wa:hover{background:#1da851}
 .btn-wa-small{background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
 .sent-badge{font-size:10px;color:#A01020;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
+.bivio-badge{font-size:10px;color:#854F0B;background:#FDF3E7;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px;font-weight:500}
+.multi-badge{font-size:10px;color:#555;background:#f0f0f0;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
 .unpaid-badge{font-size:10px;color:#A32D2D;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px;font-weight:500}
 .paid-badge{font-size:10px;color:#2e7d32;background:#eaf7ea;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
 .hero-card{background:rgba(160,16,32,0.90);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end}
@@ -154,7 +156,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
     <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">Anno pagato</label>
     <input id="pagato-anno" type="number" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit"/>
     <label style="font-size:11px;color:#888;display:block;margin:12px 0 4px">Nota (facoltativa)</label>
-    <textarea id="pagato-nota" maxlength="500" placeholder="Es. pagato con due settimane di ritardo, saldato in due tranche..." style="height:110px"></textarea>
+    <textarea id="pagato-nota" maxlength="500" placeholder="Es. saldato in due tranche · proroga di 7 mesi invece di 12, da riportare su Google Contatti" style="height:110px"></textarea>
     <button class="btn-wa" style="background:#2e7d32" onclick="salvaPagato()">Salva pagamento</button>
     <button id="pagato-rimuovi-btn" onclick="rimuoviPagato()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #A32D2D;border-radius:8px;font-size:13px;cursor:pointer;color:#A32D2D;display:none">Rimuovi flag pagamento</button>
     <button onclick="closePagatoModal()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;color:#666">Annulla</button>
@@ -390,33 +392,83 @@ function parseCanone(notes){
   return null;
 }
 // --- INSOLUTI ---------------------------------------------------------
-// Anno dal quale un canone non registrato viene considerato insoluto.
-// Prima che nell'app esistesse la spunta "pagato" i versamenti non venivano
-// registrati: segnalarli sarebbe solo rumore. Si cambia dal tab Sync.
-function annoTracciamento(){
-  const v=parseInt(lsGet('pf_anno_tracciamento')||'',10);
-  return (v&&v>2000&&v<2100)?v:new Date().getFullYear();
+// DATA DI TAGLIO. Tutto cio' che scade entro questa data e' considerato
+// SALDATO, per qualunque cliente e per qualunque anno di inizio noleggio:
+// le posizioni arretrate precedenti si verificano fuori dall'app.
+// Si valuta solo cio' che scade DOPO. Si cambia dal tab Sync.
+function dataTaglio(){
+  const v=lsGet('pf_data_taglio');
+  return (v&&/^\d{4}-\d{2}-\d{2}$/.test(v))?v:'2026-06-30';
 }
-function setAnnoTracciamento(v){
-  const n=parseInt(v,10);
-  if(!n||n<2000||n>2100){alert('Anno non valido');return;}
-  lsSet('pf_anno_tracciamento',String(n));render();
+function setDataTaglio(v){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v||'')){alert('Data non valida');return;}
+  lsSet('pf_data_taglio',v);render();
 }
-// Anni per i quali il canone risulta dovuto: dall'inizio del noleggio (o
-// dall'inizio del tracciamento, il piu' recente dei due) fino a oggi.
-// L'anno corrente conta solo se la ricorrenza e' gia' passata.
-function anniDovuti(annoInizio,mese,giorno){
+function dataTaglioFmt(){
+  const p=dataTaglio().split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+// Anni la cui ricorrenza cade DOPO la data di taglio e non oltre oggi.
+// Prima del taglio non si guarda: e' tutto dato per saldato. Cosi' l'anno di
+// inizio del noleggio non conta piu' nulla, e i contratti vecchi non
+// trascinano dietro arretrati inventati.
+function anniDovuti(mese,giorno,tappo){
   const oggi=new Date();oggi.setHours(0,0,0,0);
-  const primo=Math.max(annoInizio||0,annoTracciamento());
-  const passata=new Date(oggi.getFullYear(),mese,giorno)<=oggi;
-  const ultimo=passata?oggi.getFullYear():oggi.getFullYear()-1;
+  const taglio=new Date(dataTaglio()+'T00:00:00');
   const out=[];
-  for(let a=primo;a<=ultimo;a++) out.push(a);
+  for(let a=taglio.getFullYear();a<=oggi.getFullYear();a++){
+    const ric=new Date(a,mese,giorno);ric.setHours(0,0,0,0);
+    if(ric<=taglio||ric>oggi) continue;
+    if(tappo&&ric>tappo) continue;   // oltre la fine del noleggio non si incassa piu'
+    out.push(a);
+  }
   return out;
 }
-function anniInsoluti(cid,annoInizio,mese,giorno){
-  const pagati=getPagati(cid).map(function(x){return x.anno;});
-  return anniDovuti(annoInizio,mese,giorno).filter(function(a){return pagati.indexOf(a)<0;});
+// Una data importante e' un TAPPO se la sua etichetta comincia con FINE
+// (es. "FINE PROLUNGAMENTO 8 MESI"). Tutto il resto - etichetta vuota inclusa -
+// e' una scadenza di pagamento.
+function eTappo(label){
+  return /^\s*FINE\b/i.test(label||'');
+}
+// L'ultima data di fine del contatto: oltre quella non si aspettano piu' incassi.
+// Quando il noleggio viene prolungato, Andrea sposta in avanti questa stessa data.
+function tappoContatto(c){
+  let max=null;
+  (c.dates||[]).forEach(function(e){
+    if(!e.date||!eTappo(e.label)) return;
+    const d=new Date(e.date); if(isNaN(d.getTime())) return;
+    d.setHours(0,0,0,0);
+    if(!max||d>max) max=d;
+  });
+  return max;
+}
+// Identifica la singola scadenza dentro l'anno: "23-08". Serve perche' un cliente
+// trimestrale ha quattro incassi l'anno e vanno spuntati uno per uno.
+function chiaveScad(mese,giorno){
+  return String(giorno).padStart(2,'0')+'-'+String(mese+1).padStart(2,'0');
+}
+// Registrazioni riferite a questa scadenza. Le vecchie registrazioni senza 'scad'
+// valgono per tutte le scadenze di quell'anno: cosi' non si perde nulla.
+function pagatiScad(cid,key){
+  return getPagati(cid).filter(function(x){return !x.scad||x.scad===key;});
+}
+function anniInsoluti(cid,key,mese,giorno,tappo){
+  const pagati=pagatiScad(cid,key).map(function(x){return x.anno;});
+  return anniDovuti(mese,giorno,tappo).filter(function(a){return pagati.indexOf(a)<0;});
+}
+// Quanti canoni annui compaiono nelle note: piu' di uno vuol dire piu' strumenti
+// sullo stesso contatto, e il totale che mostriamo e' incompleto. Lo segnaliamo
+// invece di sommare a caso o di ignorarne uno in silenzio.
+function contaCanoni(notes){
+  return ((notes||'').match(/canone\s+annuo/gi)||[]).length;
+}
+function canoniBadgeHtml(s){
+  if(contaCanoni(s.contatto.notes)<2) return '';
+  return '<div><span class="multi-badge">⚯ Piu\' strumenti in scheda: importo parziale</span></div>';
+}
+function bivioBadgeHtml(s){
+  if(s.tipo!=='fine'||!s.bivio||s.spuntato) return '';
+  return '<div><span class="bivio-badge">↻ Fine noleggio: rinnovato o ritirato?</span></div>';
 }
 // Tutte le scadenze dell'anno rimaste scoperte, per la dashboard e il report.
 function tuttiGliInsoluti(){
@@ -429,7 +481,7 @@ function tuttiGliInsoluti(){
 function insolutoBadgeHtml(s){
   if(!s.insoluti||!s.insoluti.length) return '';
   const importo=s.canone?' - EUR '+Math.round(s.canone*s.insoluti.length).toLocaleString('it'):'';
-  return '<div><span class="unpaid-badge">\u26A0 Non risulta pagato: '+s.insoluti.join(', ')+importo+'</span></div>';
+  return '<div><span class="unpaid-badge">\u26A0 Da incassare: '+s.insoluti.join(', ')+importo+'</span></div>';
 }
 // --- RETE DI SICUREZZA PAGAMENTI --------------------------------------
 // Le spunte "pagato" vivono solo in questo browser: se si svuotano i dati
@@ -489,7 +541,24 @@ function getScadenzePerMese(month){
       const d=new Date(entry.date);if(isNaN(d.getTime()))return;
       if(d.getMonth()===month){
         const annoOrig=d.getFullYear();
-        result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',canone:parseCanone(c.notes),gg:calcolaGiorni(d.getMonth(),d.getDate()),annoOrig:annoOrig,insoluti:anniInsoluti(c.id,annoOrig,d.getMonth(),d.getDate())});
+        const tipo=eTappo(entry.label)?'fine':'pagamento';
+        const key=chiaveScad(d.getMonth(),d.getDate());
+        const tappo=tappoContatto(c);
+        const oggi0=new Date();oggi0.setHours(0,0,0,0);
+        let insoluti=[],bivio=false,spuntato=false,gg;
+        if(tipo==='fine'){
+          // la data di fine e' una sola e non si ripete: si guarda quella vera, anno compreso
+          gg=Math.round((d-oggi0)/(1000*60*60*24));
+          bivio=(d<=oggi0);
+          spuntato=pagatiScad(c.id,key).some(function(x){return x.anno===annoOrig;});
+        }else{
+          gg=calcolaGiorni(d.getMonth(),d.getDate());
+          insoluti=anniInsoluti(c.id,key,d.getMonth(),d.getDate(),tappo);
+          spuntato=(insoluti.length===0);
+        }
+        result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',
+          canone:(tipo==='fine'?null:parseCanone(c.notes)),gg:gg,annoOrig:annoOrig,
+          tipo:tipo,key:key,insoluti:insoluti,bivio:bivio,spuntato:spuntato});
       }
     });
   });
@@ -522,6 +591,7 @@ function renderDash(){
   const valTot=valNol+valDep;
   const potN=mn.reduce((s,x)=>s+(x.canone||0),0);
   const insoluti=tuttiGliInsoluti();
+  const bivi=(function(){const o=[];for(let m=0;m<12;m++){getScadenzePerMese(m).forEach(function(s){if(s.tipo==='fine'&&s.bivio&&!s.spuntato)o.push(s);});}return o;})();
   const totInsoluto=insoluti.reduce((s,x)=>s+((x.canone||0)*x.insoluti.length),0);
   return `
   <div class="hero-card">
@@ -536,7 +606,8 @@ function renderDash(){
     </div>
   </div>
   ${getMondayBanner()}
-  ${insoluti.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${insoluti.length} noleggi senza pagamento registrato${totInsoluto?` &middot; &euro;${Math.round(totInsoluto).toLocaleString('it')} da incassare`:''}</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(insoluti.map(s=>s.contatto.nome))].slice(0,6).join(', ')}${insoluti.length>6?' ...':''}</div></div>`:''}
+  ${bivi.length?`<div class="alert-banner alert-orange" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#854F0B">${bivi.length} noleggi arrivati a fine periodo</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(bivi.map(s=>s.contatto.nome))].slice(0,6).join(', ')}</div></div>`:''}
+  ${insoluti.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${insoluti.length} da incassare dopo il ${dataTaglioFmt()}${totInsoluto?` &middot; &euro;${Math.round(totInsoluto).toLocaleString('it')} da incassare`:''}</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(insoluti.map(s=>s.contatto.nome))].slice(0,6).join(', ')}${insoluti.length>6?' ...':''}</div></div>`:''}
   ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   ${prox7.length?`<div class="alert-banner alert-orange" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#854F0B">${prox7.length} scadenz${prox7.length===1?'a':'e'} nei prossimi 7 giorni</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(prox7.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   <div class="metric-grid">
@@ -573,7 +644,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#A01020">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="Segna pagamento" ${(s.insoluti&&s.insoluti.length)?'':'checked'} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}',event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id)}${insolutoBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="${s.tipo==='fine'?'Segna come risolto':'Segna pagamento'}" ${s.spuntato?'checked':''} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}','${s.key}','${s.tipo}',${s.day},${s.month},event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id,s.key,s.tipo)}${insolutoBadgeHtml(s)}${bivioBadgeHtml(s)}${canoniBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -599,7 +670,8 @@ function renderSync(){
   <div class="card">
     <div style="font-size:15px;font-weight:500;margin-bottom:6px">Pagamenti registrati</div>
     <div style="font-size:12px;color:#666;margin-bottom:12px">Le spunte "pagato" sono salvate solo in questo browser. Se svuoti i dati del sito o cambi dispositivo si perdono: conviene esportarle ogni tanto.</div>
-    <div class="summary-row"><span>Considera insoluti dall'anno</span><input type="number" min="2000" max="2100" value="${annoTracciamento()}" onchange="setAnnoTracciamento(this.value)" style="width:80px;text-align:right;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:2px 4px;outline:none"/></div>
+    <div style="font-size:12px;color:#666;margin:10px 0 4px">Tutto cio' che scadeva entro questa data e' dato per saldato: si controlla solo da li' in avanti.</div>
+    <div class="summary-row"><span>Saldato fino al</span><input type="date" value="${dataTaglio()}" onchange="setDataTaglio(this.value)" style="text-align:right;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:2px 4px;outline:none"/></div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn-primary" style="flex:1" onclick="esportaPagamenti()">Esporta backup</button>
       <label class="btn-secondary" style="flex:1;text-align:center;cursor:pointer;line-height:2.4" for="backup-input">Ripristina</label>
@@ -799,32 +871,42 @@ function renderAnalisi(){
 let waCurrentTel='';
 let waCurrentContactId='';
 let pagatoCurrentContactId='';
+let pagatoCurrentScad='';
+let pagatoCurrentTipo='pagamento';
 function getPagati(cid){
   try{return JSON.parse(lsGet('pf_pagato_'+cid)||'[]');}catch(e){return [];}
 }
-function pagatoBadgeHtml(cid){
-  const arr=getPagati(cid);
+function pagatoBadgeHtml(cid,key,tipo){
+  const arr=key?pagatiScad(cid,key):getPagati(cid);
   if(!arr.length) return '';
   const anni=arr.map(x=>x.anno).join(', ');
-  let h='<div><span class="paid-badge">\u2713 Pagato: '+anni+'</span></div>';
+  const parola=(tipo==='fine')?'Risolto':'Pagato';
+  let h='<div><span class="paid-badge">\u2713 '+parola+': '+anni+'</span></div>';
   arr.filter(x=>x.nota).forEach(x=>{
     const notaSafe=x.nota.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     h+='<div style="font-size:11px;color:#666;margin-top:2px;padding-left:2px;line-height:1.4">'+x.anno+': '+notaSafe+'</div>';
   });
   return h;
 }
-function apriPagatoModal(cid,nome,e){
+function apriPagatoModal(cid,nome,key,tipo,giorno,mese,e){
   if(e){e.preventDefault();e.stopPropagation();}
   pagatoCurrentContactId=cid;
-  document.getElementById('pagato-nome').textContent=nome;
+  pagatoCurrentScad=key||'';
+  pagatoCurrentTipo=tipo||'pagamento';
+  const quando=(giorno!==undefined&&mese!==undefined)?' · '+giorno+' '+MONTHS_SHORT[mese]:'';
+  document.getElementById('pagato-nome').textContent=nome+quando;
   document.getElementById('pagato-anno').value=new Date().getFullYear();
   document.getElementById('pagato-nota').value='';
-  document.getElementById('pagato-rimuovi-btn').style.display=getPagati(cid).length?'block':'none';
+  document.getElementById('pagato-rimuovi-btn').style.display=pagatiScad(cid,key).length?'block':'none';
   document.getElementById('pagato-modal').style.display='flex';
 }
 function rimuoviPagato(){
-  if(!confirm('Togliere il flag pagamento e cancellare le note salvate per questo cliente?'))return;
-  lsDel('pf_pagato_'+pagatoCurrentContactId);
+  if(!confirm('Togliere la spunta e la nota di questa scadenza?'))return;
+  const restanti=getPagati(pagatoCurrentContactId).filter(function(x){
+    return pagatoCurrentScad ? (x.scad||'')!==pagatoCurrentScad : false;
+  });
+  if(restanti.length) lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(restanti));
+  else lsDel('pf_pagato_'+pagatoCurrentContactId);
   document.getElementById('pagato-modal').style.display='none';
   render();
 }
@@ -836,8 +918,9 @@ function salvaPagato(){
   if(!anno||anno<2000||anno>2100){alert('Anno non valido');return;}
   const nota=document.getElementById('pagato-nota').value.trim();
   const esistenti=getPagati(pagatoCurrentContactId);
-  const idx=esistenti.findIndex(x=>x.anno===anno);
-  if(idx>-1) esistenti[idx]={anno,nota}; else esistenti.push({anno,nota});
+  const scad=pagatoCurrentScad||'';
+  const idx=esistenti.findIndex(x=>x.anno===anno&&(x.scad||'')===scad);
+  if(idx>-1) esistenti[idx]={anno,nota,scad}; else esistenti.push({anno,nota,scad});
   esistenti.sort((a,b)=>a.anno-b.anno);
   lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(esistenti));
   document.getElementById('pagato-modal').style.display='none';
@@ -932,7 +1015,7 @@ function copyReport(){
   const ins=tuttiGliInsoluti();
   if(ins.length){
     txt+='--------------------------------\n';
-    txt+='DA VERIFICARE - nessun pagamento registrato\n\n';
+    txt+='DA INCASSARE (scadenze dopo il '+dataTaglioFmt()+')\n\n';
     ins.forEach(function(s){
       txt+='- '+s.contatto.nome+': '+s.insoluti.join(', ');
       if(s.canone) txt+='  (EUR '+Math.round(s.canone*s.insoluti.length).toLocaleString('it')+')';
