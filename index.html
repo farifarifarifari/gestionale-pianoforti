@@ -87,6 +87,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .btn-wa:hover{background:#1da851}
 .btn-wa-small{background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
 .sent-badge{font-size:10px;color:#A01020;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
+.rif-fic{color:#185FA5;font-weight:500;margin-left:5px}
 .bivio-badge{font-size:10px;color:#854F0B;background:#FDF3E7;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px;font-weight:500}
 .multi-badge{font-size:10px;color:#555;background:#f0f0f0;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
 .unpaid-badge{font-size:10px;color:#A32D2D;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px;font-weight:500}
@@ -154,9 +155,9 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
     <div class="wa-nome" id="pagato-nome"></div>
     <div class="wa-sub">Segna il pagamento e, se vuoi, aggiungi una nota</div>
     <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">Anno pagato</label>
-    <input id="pagato-anno" type="number" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit"/>
+    <input id="pagato-anno" type="number" onchange="caricaNotaAnno()" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit"/>
     <label style="font-size:11px;color:#888;display:block;margin:12px 0 4px">Nota (facoltativa)</label>
-    <textarea id="pagato-nota" maxlength="500" placeholder="Es. saldato in due tranche · proroga di 7 mesi invece di 12, da riportare su Google Contatti" style="height:110px"></textarea>
+    <textarea id="pagato-nota" maxlength="2000" placeholder="Es. saldato in due tranche · proroga di 7 mesi invece di 12, da riportare su Google Contatti" style="height:110px"></textarea>
     <button class="btn-wa" style="background:#2e7d32" onclick="salvaPagato()">Salva pagamento</button>
     <button id="pagato-rimuovi-btn" onclick="rimuoviPagato()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #A32D2D;border-radius:8px;font-size:13px;cursor:pointer;color:#A32D2D;display:none">Rimuovi flag pagamento</button>
     <button onclick="closePagatoModal()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;color:#666">Annulla</button>
@@ -554,7 +555,11 @@ function getScadenzePerMese(month){
         }else{
           gg=calcolaGiorni(d.getMonth(),d.getDate());
           insoluti=anniInsoluti(c.id,key,d.getMonth(),d.getDate(),tappo);
-          spuntato=(insoluti.length===0);
+          // Il quadratino parte VUOTO e si spunta solo se esiste una registrazione
+          // di incasso per quell'anno: messa a mano, oppure trovata su Fatture in
+          // Cloud o nei movimenti del conto. Vuoto significa "nessuna prova",
+          // non "non ha pagato".
+          spuntato=pagatiScad(c.id,key).some(function(x){return x.anno===oggi0.getFullYear();});
         }
         result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',
           canone:(tipo==='fine'?null:parseCanone(c.notes)),gg:gg,annoOrig:annoOrig,
@@ -607,7 +612,7 @@ function renderDash(){
   </div>
   ${getMondayBanner()}
   ${bivi.length?`<div class="alert-banner alert-orange" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#854F0B">${bivi.length} noleggi arrivati a fine periodo</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(bivi.map(s=>s.contatto.nome))].slice(0,6).join(', ')}</div></div>`:''}
-  ${insoluti.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${insoluti.length} da incassare dopo il ${dataTaglioFmt()}${totInsoluto?` &middot; &euro;${Math.round(totInsoluto).toLocaleString('it')} da incassare`:''}</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(insoluti.map(s=>s.contatto.nome))].slice(0,6).join(', ')}${insoluti.length>6?' ...':''}</div></div>`:''}
+  ${insoluti.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${insoluti.length} scadenze passate senza incasso registrato${totInsoluto?` &middot; &euro;${Math.round(totInsoluto).toLocaleString('it')} da incassare`:''}</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(insoluti.map(s=>s.contatto.nome))].slice(0,6).join(', ')}${insoluti.length>6?' ...':''}</div></div>`:''}
   ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   ${prox7.length?`<div class="alert-banner alert-orange" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#854F0B">${prox7.length} scadenz${prox7.length===1?'a':'e'} nei prossimi 7 giorni</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(prox7.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   <div class="metric-grid">
@@ -644,7 +649,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#A01020">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="${s.tipo==='fine'?'Segna come risolto':'Segna pagamento'}" ${s.spuntato?'checked':''} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}','${s.key}','${s.tipo}',${s.day},${s.month},event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id,s.key,s.tipo)}${insolutoBadgeHtml(s)}${bivioBadgeHtml(s)}${canoniBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="${s.tipo==='fine'?'Segna come risolto':'Segna pagamento'}" ${s.spuntato?'checked':''} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}','${s.key}','${s.tipo}',${s.day},${s.month},event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id,s.key,s.tipo)}${bivioBadgeHtml(s)}${canoniBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -876,10 +881,17 @@ let pagatoCurrentTipo='pagamento';
 function getPagati(cid){
   try{return JSON.parse(lsGet('pf_pagato_'+cid)||'[]');}catch(e){return [];}
 }
+// Da dove arriva una spunta: messa a mano, letta da una fattura, vista sul conto.
+function origineHtml(x){
+  if(!x||!x.fonte||x.fonte==='mano') return '';
+  if(x.fonte==='fattura') return '<span class="rif-fic">● fattura '+(x.rif||'')+'</span>';
+  if(x.fonte==='banca')   return '<span class="rif-fic">● movimento '+(x.rif||'')+'</span>';
+  return '';
+}
 function pagatoBadgeHtml(cid,key,tipo){
   const arr=key?pagatiScad(cid,key):getPagati(cid);
   if(!arr.length) return '';
-  const anni=arr.map(x=>x.anno).join(', ');
+  const anni=arr.map(function(x){return x.anno+origineHtml(x);}).join(', ');
   const parola=(tipo==='fine')?'Risolto':'Pagato';
   let h='<div><span class="paid-badge">\u2713 '+parola+': '+anni+'</span></div>';
   arr.filter(x=>x.nota).forEach(x=>{
@@ -895,10 +907,23 @@ function apriPagatoModal(cid,nome,key,tipo,giorno,mese,e){
   pagatoCurrentTipo=tipo||'pagamento';
   const quando=(giorno!==undefined&&mese!==undefined)?' · '+giorno+' '+MONTHS_SHORT[mese]:'';
   document.getElementById('pagato-nome').textContent=nome+quando;
-  document.getElementById('pagato-anno').value=new Date().getFullYear();
-  document.getElementById('pagato-nota').value='';
-  document.getElementById('pagato-rimuovi-btn').style.display=pagatiScad(cid,key).length?'block':'none';
+  // Ricarica quello che c'e' gia' scritto per questa scadenza, cosi' la nota si
+  // integra invece di doverla riscrivere da capo ogni volta.
+  const gia=pagatiScad(cid,key);
+  const annoOggi=new Date().getFullYear();
+  const corr=gia.filter(function(x){return x.anno===annoOggi;})[0]||gia[gia.length-1];
+  document.getElementById('pagato-anno').value=corr?corr.anno:annoOggi;
+  document.getElementById('pagato-nota').value=corr?(corr.nota||''):'';
+  document.getElementById('pagato-rimuovi-btn').style.display=gia.length?'block':'none';
   document.getElementById('pagato-modal').style.display='flex';
+}
+// Se si cambia l'anno nella finestrella, la nota mostrata deve essere quella di
+// quell'anno: altrimenti si sovrascrive la nota del 2026 con quella del 2027.
+function caricaNotaAnno(){
+  const anno=parseInt(document.getElementById('pagato-anno').value,10);
+  const gia=pagatiScad(pagatoCurrentContactId,pagatoCurrentScad);
+  const corr=gia.filter(function(x){return x.anno===anno;})[0];
+  document.getElementById('pagato-nota').value=corr?(corr.nota||''):'';
 }
 function rimuoviPagato(){
   if(!confirm('Togliere la spunta e la nota di questa scadenza?'))return;
@@ -920,7 +945,12 @@ function salvaPagato(){
   const esistenti=getPagati(pagatoCurrentContactId);
   const scad=pagatoCurrentScad||'';
   const idx=esistenti.findIndex(x=>x.anno===anno&&(x.scad||'')===scad);
-  if(idx>-1) esistenti[idx]={anno,nota,scad}; else esistenti.push({anno,nota,scad});
+  // Chi ha messo la spunta: qui e' sempre Andrea a mano. Se la registrazione
+  // esisteva gia' ed era arrivata da una fattura o dal conto, l'origine resta
+  // quella e la nota si limita ad aggiungersi.
+  const fonte=(idx>-1&&esistenti[idx].fonte)?esistenti[idx].fonte:'mano';
+  const rif=(idx>-1&&esistenti[idx].rif)?esistenti[idx].rif:'';
+  if(idx>-1) esistenti[idx]={anno,nota,scad,fonte,rif}; else esistenti.push({anno,nota,scad,fonte,rif});
   esistenti.sort((a,b)=>a.anno-b.anno);
   lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(esistenti));
   document.getElementById('pagato-modal').style.display='none';
