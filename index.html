@@ -87,6 +87,8 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .btn-wa:hover{background:#1da851}
 .btn-wa-small{background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
 .sent-badge{font-size:10px;color:#A01020;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
+.btn-nota{background:none;border:0.5px solid #e0e0e0;border-radius:6px;color:#999;font-size:12px;line-height:1;padding:4px 6px;cursor:pointer}
+.btn-nota.pieno{border-color:#185FA5;color:#185FA5;background:#EAF0F6}
 .rif-fic{color:#185FA5;font-weight:500;margin-left:5px}
 .bivio-badge{font-size:10px;color:#854F0B;background:#FDF3E7;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px;font-weight:500}
 .multi-badge{font-size:10px;color:#555;background:#f0f0f0;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
@@ -153,12 +155,12 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 <div id="pagato-modal" style="display:none" class="wa-modal" onclick="closePagatoModal(event)">
   <div class="wa-box">
     <div class="wa-nome" id="pagato-nome"></div>
-    <div class="wa-sub">Segna il pagamento e, se vuoi, aggiungi una nota</div>
-    <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">Anno pagato</label>
+    <div class="wa-sub">Appunti su questa scadenza. Restano qui e si possono modificare.</div>
+    <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">Anno di riferimento</label>
     <input id="pagato-anno" type="number" onchange="caricaNotaAnno()" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit"/>
-    <label style="font-size:11px;color:#888;display:block;margin:12px 0 4px">Nota (facoltativa)</label>
-    <textarea id="pagato-nota" maxlength="2000" placeholder="Es. saldato in due tranche · proroga di 7 mesi invece di 12, da riportare su Google Contatti" style="height:110px"></textarea>
-    <button class="btn-wa" style="background:#2e7d32" onclick="salvaPagato()">Salva pagamento</button>
+    <label style="font-size:11px;color:#888;display:block;margin:12px 0 4px">Appunti</label>
+    <textarea id="pagato-nota" maxlength="2000" placeholder="Es. paga in contanti alla consegna · ha detto che salda fra 10 giorni · proroga di 7 mesi, da riportare su Google Contatti" style="height:110px"></textarea>
+    <button class="btn-wa" style="background:#2e7d32" onclick="salvaPagato()">Salva appunti</button>
     <button id="pagato-rimuovi-btn" onclick="rimuoviPagato()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #A32D2D;border-radius:8px;font-size:13px;cursor:pointer;color:#A32D2D;display:none">Rimuovi flag pagamento</button>
     <button onclick="closePagatoModal()" style="width:100%;margin-top:8px;padding:9px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;font-size:13px;cursor:pointer;color:#666">Annulla</button>
   </div>
@@ -453,8 +455,37 @@ function chiaveScad(mese,giorno){
 function pagatiScad(cid,key){
   return getPagati(cid).filter(function(x){return !x.scad||x.scad===key;});
 }
+// Una registrazione per scadenza e per anno. Dentro convivono due cose distinte:
+// il flag del pagamento e gli appunti liberi. Le registrazioni vecchie non hanno
+// il campo 'pagato': erano nate spuntando la casella, quindi valgono come pagate.
+function recordScad(cid,key,anno){
+  return pagatiScad(cid,key).filter(function(x){return x.anno===anno;})[0]||null;
+}
+function risultaPagato(x){ return !!x && x.pagato!==false; }
+function haNota(cid,key){
+  return pagatiScad(cid,key).some(function(x){return x.nota&&x.nota.length;});
+}
+// Il quadratino: spunta e togli, senza aprire niente. Gli appunti restano dove sono.
+function togglePagato(cid,key){
+  const anno=new Date().getFullYear();
+  const tutte=getPagati(cid);
+  const i=tutte.findIndex(function(x){return x.anno===anno&&(x.scad||'')===key;});
+  if(i>-1){
+    if(risultaPagato(tutte[i])){
+      // toglie la spunta ma non butta via gli appunti
+      if(tutte[i].nota&&tutte[i].nota.length){ tutte[i].pagato=false; tutte[i].fonte='mano'; tutte[i].rif=''; }
+      else { tutte.splice(i,1); }
+    } else {
+      tutte[i].pagato=true; tutte[i].fonte='mano'; tutte[i].rif='';
+    }
+  } else {
+    tutte.push({anno:anno,scad:key,pagato:true,nota:'',fonte:'mano',rif:''});
+  }
+  if(tutte.length) lsSet('pf_pagato_'+cid,JSON.stringify(tutte)); else lsDel('pf_pagato_'+cid);
+  render();
+}
 function anniInsoluti(cid,key,mese,giorno,tappo){
-  const pagati=pagatiScad(cid,key).map(function(x){return x.anno;});
+  const pagati=pagatiScad(cid,key).filter(risultaPagato).map(function(x){return x.anno;});
   return anniDovuti(mese,giorno,tappo).filter(function(a){return pagati.indexOf(a)<0;});
 }
 // Quanti canoni annui compaiono nelle note: piu' di uno vuol dire piu' strumenti
@@ -551,7 +582,7 @@ function getScadenzePerMese(month){
           // la data di fine e' una sola e non si ripete: si guarda quella vera, anno compreso
           gg=Math.round((d-oggi0)/(1000*60*60*24));
           bivio=(d<=oggi0);
-          spuntato=pagatiScad(c.id,key).some(function(x){return x.anno===annoOrig;});
+          spuntato=risultaPagato(recordScad(c.id,key,annoOrig));
         }else{
           gg=calcolaGiorni(d.getMonth(),d.getDate());
           insoluti=anniInsoluti(c.id,key,d.getMonth(),d.getDate(),tappo);
@@ -559,7 +590,7 @@ function getScadenzePerMese(month){
           // di incasso per quell'anno: messa a mano, oppure trovata su Fatture in
           // Cloud o nei movimenti del conto. Vuoto significa "nessuna prova",
           // non "non ha pagato".
-          spuntato=pagatiScad(c.id,key).some(function(x){return x.anno===oggi0.getFullYear();});
+          spuntato=risultaPagato(recordScad(c.id,key,oggi0.getFullYear()));
         }
         result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',
           canone:(tipo==='fine'?null:parseCanone(c.notes)),gg:gg,annoOrig:annoOrig,
@@ -649,7 +680,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#A01020">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="${s.tipo==='fine'?'Segna come risolto':'Segna pagamento'}" ${s.spuntato?'checked':''} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}','${s.key}','${s.tipo}',${s.day},${s.month},event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id,s.key,s.tipo)}${bivioBadgeHtml(s)}${canoniBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="${s.tipo==='fine'?'Segna come risolto':'Segna come pagato'}" ${s.spuntato?'checked':''} onclick="event.stopPropagation();togglePagato('${s.contatto.id}','${s.key}')" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-nota${haNota(s.contatto.id,s.key)?' pieno':''}" title="Appunti" onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}','${s.key}','${s.tipo}',${s.day},${s.month},event)">✎</button><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id,s.key,s.tipo)}${bivioBadgeHtml(s)}${canoniBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -891,9 +922,10 @@ function origineHtml(x){
 function pagatoBadgeHtml(cid,key,tipo){
   const arr=key?pagatiScad(cid,key):getPagati(cid);
   if(!arr.length) return '';
-  const anni=arr.map(function(x){return x.anno+origineHtml(x);}).join(', ');
+  const pagate=arr.filter(risultaPagato);
+  const anni=pagate.map(function(x){return x.anno+origineHtml(x);}).join(', ');
   const parola=(tipo==='fine')?'Risolto':'Pagato';
-  let h='<div><span class="paid-badge">\u2713 '+parola+': '+anni+'</span></div>';
+  let h=!pagate.length?'':('<div><span class="paid-badge">\u2713 '+parola+': '+anni+'</span></div>');
   arr.filter(x=>x.nota).forEach(x=>{
     const notaSafe=x.nota.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     h+='<div style="font-size:11px;color:#666;margin-top:2px;padding-left:2px;line-height:1.4">'+x.anno+': '+notaSafe+'</div>';
@@ -926,9 +958,13 @@ function caricaNotaAnno(){
   document.getElementById('pagato-nota').value=corr?(corr.nota||''):'';
 }
 function rimuoviPagato(){
-  if(!confirm('Togliere la spunta e la nota di questa scadenza?'))return;
-  const restanti=getPagati(pagatoCurrentContactId).filter(function(x){
-    return pagatoCurrentScad ? (x.scad||'')!==pagatoCurrentScad : false;
+  if(!confirm('Cancellare gli appunti di questa scadenza? La spunta del pagamento resta com e.'))return;
+  const anno=parseInt(document.getElementById('pagato-anno').value,10);
+  const restanti=[];
+  getPagati(pagatoCurrentContactId).forEach(function(x){
+    if((x.scad||'')===pagatoCurrentScad&&x.anno===anno){
+      if(risultaPagato(x)){ x.nota=''; restanti.push(x); }   // resta il pagamento, spariscono gli appunti
+    } else { restanti.push(x); }
   });
   if(restanti.length) lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(restanti));
   else lsDel('pf_pagato_'+pagatoCurrentContactId);
@@ -948,9 +984,12 @@ function salvaPagato(){
   // Chi ha messo la spunta: qui e' sempre Andrea a mano. Se la registrazione
   // esisteva gia' ed era arrivata da una fattura o dal conto, l'origine resta
   // quella e la nota si limita ad aggiungersi.
+  // Gli appunti sono una cosa, la spunta un'altra: salvare qui non accende nulla.
   const fonte=(idx>-1&&esistenti[idx].fonte)?esistenti[idx].fonte:'mano';
   const rif=(idx>-1&&esistenti[idx].rif)?esistenti[idx].rif:'';
-  if(idx>-1) esistenti[idx]={anno,nota,scad,fonte,rif}; else esistenti.push({anno,nota,scad,fonte,rif});
+  const pagato=(idx>-1)?risultaPagato(esistenti[idx]):false;
+  if(idx>-1) esistenti[idx]={anno,scad,pagato,nota,fonte,rif};
+  else if(nota.length) esistenti.push({anno,scad,pagato:false,nota,fonte,rif});
   esistenti.sort((a,b)=>a.anno-b.anno);
   lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(esistenti));
   document.getElementById('pagato-modal').style.display='none';
