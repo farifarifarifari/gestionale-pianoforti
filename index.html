@@ -87,6 +87,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .btn-wa:hover{background:#1da851}
 .btn-wa-small{background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap}
 .sent-badge{font-size:10px;color:#A01020;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
+.unpaid-badge{font-size:10px;color:#A32D2D;background:#fdeced;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px;font-weight:500}
 .paid-badge{font-size:10px;color:#2e7d32;background:#eaf7ea;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
 .hero-card{background:rgba(160,16,32,0.90);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end}
 .report-banner{background:#fff;border:1.5px solid #A01020;border-radius:12px;padding:14px;margin-bottom:12px}
@@ -388,6 +389,93 @@ function parseCanone(notes){
   if(m)return parseFloat(m[1].replace(',','.'));
   return null;
 }
+// --- INSOLUTI ---------------------------------------------------------
+// Anno dal quale un canone non registrato viene considerato insoluto.
+// Prima che nell'app esistesse la spunta "pagato" i versamenti non venivano
+// registrati: segnalarli sarebbe solo rumore. Si cambia dal tab Sync.
+function annoTracciamento(){
+  const v=parseInt(lsGet('pf_anno_tracciamento')||'',10);
+  return (v&&v>2000&&v<2100)?v:new Date().getFullYear();
+}
+function setAnnoTracciamento(v){
+  const n=parseInt(v,10);
+  if(!n||n<2000||n>2100){alert('Anno non valido');return;}
+  lsSet('pf_anno_tracciamento',String(n));render();
+}
+// Anni per i quali il canone risulta dovuto: dall'inizio del noleggio (o
+// dall'inizio del tracciamento, il piu' recente dei due) fino a oggi.
+// L'anno corrente conta solo se la ricorrenza e' gia' passata.
+function anniDovuti(annoInizio,mese,giorno){
+  const oggi=new Date();oggi.setHours(0,0,0,0);
+  const primo=Math.max(annoInizio||0,annoTracciamento());
+  const passata=new Date(oggi.getFullYear(),mese,giorno)<=oggi;
+  const ultimo=passata?oggi.getFullYear():oggi.getFullYear()-1;
+  const out=[];
+  for(let a=primo;a<=ultimo;a++) out.push(a);
+  return out;
+}
+function anniInsoluti(cid,annoInizio,mese,giorno){
+  const pagati=getPagati(cid).map(function(x){return x.anno;});
+  return anniDovuti(annoInizio,mese,giorno).filter(function(a){return pagati.indexOf(a)<0;});
+}
+// Tutte le scadenze dell'anno rimaste scoperte, per la dashboard e il report.
+function tuttiGliInsoluti(){
+  const out=[];
+  for(let m=0;m<12;m++){
+    getScadenzePerMese(m).forEach(function(s){ if(s.insoluti&&s.insoluti.length) out.push(s); });
+  }
+  return out;
+}
+function insolutoBadgeHtml(s){
+  if(!s.insoluti||!s.insoluti.length) return '';
+  const importo=s.canone?' - EUR '+Math.round(s.canone*s.insoluti.length).toLocaleString('it'):'';
+  return '<div><span class="unpaid-badge">\u26A0 Non risulta pagato: '+s.insoluti.join(', ')+importo+'</span></div>';
+}
+// --- RETE DI SICUREZZA PAGAMENTI --------------------------------------
+// Le spunte "pagato" vivono solo in questo browser: se si svuotano i dati
+// del sito spariscono. Qui si esportano e si rileggono da file.
+function esportaPagamenti(){
+  const dati={_tipo:'playpiano-pagamenti',_data:new Date().toISOString(),pagamenti:{},wa:{},contratto_num:lsGet('pf_contratto_num')||''};
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k.indexOf('pf_pagato_')===0) dati.pagamenti[k]=localStorage.getItem(k);
+      if(k.indexOf('pf_wa_')===0) dati.wa[k]=localStorage.getItem(k);
+    }
+  }catch(e){}
+  const n=Object.keys(dati.pagamenti).length;
+  const blob=new Blob([JSON.stringify(dati,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='playpiano-pagamenti-'+new Date().toISOString().substring(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  const el=document.getElementById('backup-status');
+  if(el) el.innerHTML='<span style="color:#2e7d32">Salvati '+n+' clienti con pagamenti registrati.</span>';
+}
+function importaPagamenti(input){
+  const file=input.files[0];if(!file)return;
+  const el=document.getElementById('backup-status');
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d||d._tipo!=='playpiano-pagamenti') throw new Error('Non e un backup dei pagamenti PlayPiano');
+      const chiavi=Object.keys(d.pagamenti||{});
+      if(!confirm('Il backup contiene '+chiavi.length+' clienti con pagamenti.\nI dati attuali per quei clienti verranno sostituiti. Procedere?')){input.value='';return;}
+      chiavi.forEach(function(k){ lsSet(k,d.pagamenti[k]); });
+      Object.keys(d.wa||{}).forEach(function(k){ lsSet(k,d.wa[k]); });
+      if(d.contratto_num) lsSet('pf_contratto_num',String(d.contratto_num));
+      if(el) el.innerHTML='<span style="color:#2e7d32">Ripristinati '+chiavi.length+' clienti.</span>';
+      input.value='';
+      render();
+    }catch(err){
+      if(el) el.innerHTML='<span style="color:#A32D2D">Errore: '+err.message+'</span>';
+      input.value='';
+    }
+  };
+  reader.readAsText(file);
+}
 function calcolaGiorni(month,day){
   const oggi=new Date();oggi.setHours(0,0,0,0);
   const d=new Date(oggi.getFullYear(),month,day);d.setHours(0,0,0,0);
@@ -399,7 +487,10 @@ function getScadenzePerMese(month){
     (c.dates||[]).forEach(entry=>{
       if(!entry.date)return;
       const d=new Date(entry.date);if(isNaN(d.getTime()))return;
-      if(d.getMonth()===month)result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',canone:parseCanone(c.notes),gg:calcolaGiorni(d.getMonth(),d.getDate())});
+      if(d.getMonth()===month){
+        const annoOrig=d.getFullYear();
+        result.push({contatto:c,day:d.getDate(),month:d.getMonth(),label:entry.label||'',canone:parseCanone(c.notes),gg:calcolaGiorni(d.getMonth(),d.getDate()),annoOrig:annoOrig,insoluti:anniInsoluti(c.id,annoOrig,d.getMonth(),d.getDate())});
+      }
     });
   });
   return result.sort((a,b)=>a.day-b.day);
@@ -430,6 +521,8 @@ function renderDash(){
   const valDep=pianos.filter(p=>p.stato==='D').reduce((s,p)=>s+(parseFloat(p.costo)||0),0);
   const valTot=valNol+valDep;
   const potN=mn.reduce((s,x)=>s+(x.canone||0),0);
+  const insoluti=tuttiGliInsoluti();
+  const totInsoluto=insoluti.reduce((s,x)=>s+((x.canone||0)*x.insoluti.length),0);
   return `
   <div class="hero-card">
     <div>
@@ -443,6 +536,7 @@ function renderDash(){
     </div>
   </div>
   ${getMondayBanner()}
+  ${insoluti.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${insoluti.length} noleggi senza pagamento registrato${totInsoluto?` &middot; &euro;${Math.round(totInsoluto).toLocaleString('it')} da incassare`:''}</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(insoluti.map(s=>s.contatto.nome))].slice(0,6).join(', ')}${insoluti.length>6?' ...':''}</div></div>`:''}
   ${scadute.length?`<div class="alert-banner alert-red" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#A32D2D">${scadute.length} scadenz${scadute.length===1?'a':'e'} già passata${scadute.length===1?'':'e'} questo mese</div><div style="font-size:12px;color:#791F1F;margin-top:2px">${[...new Set(scadute.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   ${prox7.length?`<div class="alert-banner alert-orange" onclick="showTab('clienti')"><div style="font-weight:500;font-size:13px;color:#854F0B">${prox7.length} scadenz${prox7.length===1?'a':'e'} nei prossimi 7 giorni</div><div style="font-size:12px;color:#633806;margin-top:2px">${[...new Set(prox7.map(s=>s.contatto.nome))].join(', ')}</div></div>`:''}
   <div class="metric-grid">
@@ -479,7 +573,7 @@ function renderScadenze(){
     <button onclick="nextMonth()">${MONTHS_SHORT[(viewMonth+1)%12]} ›</button>
   </div>
   ${scad.length?`<div class="month-totals"><span style="font-size:13px;color:#666">${scad.length} scadenz${scad.length===1?'a':'e'} · ${[...new Set(scad.map(s=>s.contatto.id))].length} clienti</span>${tot>0?`<span style="font-weight:500;color:#A01020">€${Math.round(tot).toLocaleString('it')} pot.</span>`:''}</div>`:''}
-  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="Segna pagamento" ${getPagati(s.contatto.id).length?'checked':''} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}',event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
+  ${Object.keys(byDay).sort((a,b)=>a-b).map(day=>`<div class="day-label">${day} ${MONTHS_SHORT[viewMonth]}</div>${byDay[day].map(s=>`<div class="scad-card ${cardCls(s.gg)}" onclick="openContattoDetail('${s.contatto.id}')"><div class="scad-header"><div style="flex:1;min-width:0"><div class="scad-nome">${s.contatto.nome}</div>${s.label?`<div class="scad-meta">${s.label}</div>`:''} ${s.contatto.telefono?`<div class="scad-meta" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px">${s.contatto.telefono}<span style="display:flex;align-items:center;gap:6px;flex-shrink:0"><input type="checkbox" title="Segna pagamento" ${(s.insoluti&&s.insoluti.length)?'':'checked'} onclick="event.stopPropagation();apriPagatoModal('${s.contatto.id}','${s.contatto.nome}',event)" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer"/><button class="btn-wa-small" onclick="event.stopPropagation();openWa('${s.contatto.nome}','${s.contatto.telefono}','${s.day}/${s.month+1}',${s.canone||0},'${s.contatto.id}')">WA</button></span></div>${lsGet('pf_wa_'+s.contatto.id)?'<div><span class="sent-badge">\u2709 Inviato: '+lsGet('pf_wa_'+s.contatto.id)+'</span></div>':''}${pagatoBadgeHtml(s.contatto.id)}${insolutoBadgeHtml(s)}`:'' }</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${s.canone?`<span style="font-weight:500;font-size:13px;color:#A01020">€${Math.round(s.canone)}/a</span>`:''}<span class="badge ${badgeCls(s.gg)}">${fmtGg(s.gg)}</span></div></div></div>`).join('')}`).join('')}
   ${!scad.length?`<div class="empty-state"><div>Nessuna scadenza in ${MONTHS[viewMonth]}</div></div>`:''}`;
 }
 function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}render();}
@@ -501,6 +595,17 @@ function renderSync(){
     <div style="font-size:13px;color:#666;margin-bottom:16px">Importa il gruppo <strong>NOLO LUNGO TERMINE</strong>.</div>
     ${!gToken?`<button class="btn-google" onclick="googleAuth()"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Connetti Google Contacts</button>`:`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><span class="connected-dot"></span><span style="font-size:13px;font-weight:500">Google connesso</span></div><button onclick="disconnectGoogle()" style="font-size:12px;color:#666;background:none;border:none;cursor:pointer">Disconnetti</button></div><button class="btn-primary" onclick="syncContatti()">Sincronizza ora</button>`}
     <div id="sync-status" style="margin-top:12px;font-size:12px;color:#666;word-break:break-word"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:15px;font-weight:500;margin-bottom:6px">Pagamenti registrati</div>
+    <div style="font-size:12px;color:#666;margin-bottom:12px">Le spunte "pagato" sono salvate solo in questo browser. Se svuoti i dati del sito o cambi dispositivo si perdono: conviene esportarle ogni tanto.</div>
+    <div class="summary-row"><span>Considera insoluti dall'anno</span><input type="number" min="2000" max="2100" value="${annoTracciamento()}" onchange="setAnnoTracciamento(this.value)" style="width:80px;text-align:right;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:2px 4px;outline:none"/></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-primary" style="flex:1" onclick="esportaPagamenti()">Esporta backup</button>
+      <label class="btn-secondary" style="flex:1;text-align:center;cursor:pointer;line-height:2.4" for="backup-input">Ripristina</label>
+    </div>
+    <input type="file" id="backup-input" accept=".json" style="display:none" onchange="importaPagamenti(this)"/>
+    <div id="backup-status" style="margin-top:10px;font-size:12px"></div>
   </div>
   ${contatti.length?`<div class="card"><div class="section-title">Importati</div><div class="summary-row"><span>Contatti</span><span style="font-weight:500">${contatti.length}</span></div><div class="summary-row"><span>Con canone</span><span style="font-weight:500">${contatti.filter(c=>parseCanone(c.notes)).length}</span></div><div class="summary-row"><span>Date totali</span><span style="font-weight:500">${contatti.reduce((s,c)=>s+(c.dates||[]).length,0)}</span></div>${lastSync?`<div class="summary-row"><span>Sync</span><span style="font-weight:500">${lastSync}</span></div>`:''}<button onclick="clearContatti()" style="margin-top:10px;padding:7px 14px;border:0.5px solid #F09595;border-radius:8px;font-size:12px;background:none;cursor:pointer;color:#A32D2D">Svuota contatti</button></div>`:''}`;
 }
@@ -824,6 +929,17 @@ function copyReport(){
     if(s.canone) txt+='   Canone: EUR '+Math.round(s.canone)+'/anno\n';
     txt+='\n';
   });
+  const ins=tuttiGliInsoluti();
+  if(ins.length){
+    txt+='--------------------------------\n';
+    txt+='DA VERIFICARE - nessun pagamento registrato\n\n';
+    ins.forEach(function(s){
+      txt+='- '+s.contatto.nome+': '+s.insoluti.join(', ');
+      if(s.canone) txt+='  (EUR '+Math.round(s.canone*s.insoluti.length).toLocaleString('it')+')';
+      txt+='\n';
+    });
+    txt+='\n';
+  }
   const tot=scadNext.reduce((s,x)=>s+(x.canone||0),0);
   txt+='================================\n';
   txt+='Totale: '+scadNext.length+' clienti';
@@ -1549,17 +1665,6 @@ function renderReferenteRow(n,nome,tel){
       +'</div>'
       +'<input type="text" id="refsearch'+n+'" placeholder="Cerca in rubrica..." oninput="cercaReferente('+n+',this.value)" onfocus="if(!rubricaCompleta.length)caricaRubricaCompleta()" style="width:100%;border:0.5px solid #e0e0e0;border-radius:6px;font-size:11px;padding:5px 8px;outline:none;color:#888;box-sizing:border-box"/>'
       +'<div id="refresults'+n+'"></div>'
-      +'</div>';
-  }
-window.selezionaReferente=function(n,nome,tel){
-    const box=document.getElementById('refresults'+n);
-    if(!box) return;
-    q=(q||'').toLowerCase().trim();
-    if(q.length<2){box.innerHTML='';return;}
-    const trovati=rubricaCompleta.filter(c=>c.nome.toLowerCase().includes(q)).slice(0,8);
-    if(!trovati.length){box.innerHTML='<div style="padding:6px 8px;font-size:12px;color:#888;border:0.5px solid #e0e0e0;border-radius:6px;margin-top:4px">Nessun contatto</div>';return;}
-    box.innerHTML='<div style="border:0.5px solid #e0e0e0;border-radius:6px;margin-top:4px;max-height:160px;overflow-y:auto">'
-      +trovati.map(c=>'<div onclick="selezionaReferente('+n+',\''+c.nome.replace(/'/g,"")+'\',\''+(c.telefono||'').replace(/'/g,"")+'\')" style="padding:6px 8px;font-size:12px;cursor:pointer;border-bottom:0.5px solid #f0f0f0">'+c.nome+(c.telefono?' <span style="color:#888">'+c.telefono+'</span>':'')+'</div>').join('')
       +'</div>';
   }
   function selezionaReferente(n,nome,tel){
