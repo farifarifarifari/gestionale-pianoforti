@@ -1595,7 +1595,7 @@ Del valore di € ${f.valore} + Sgabello Regolabile Professionale <b>INCLUSO</b>
 
 
 
-const KEYWORDS_CONCERTI=['concerto','saggio','recital','masterclass'];
+const KEYWORDS_CONCERTI=['concerto','saggio','recital','masterclass','matrimonio'];
 // Marcatori dei campi che l'app scrive nella descrizione: se presenti, l'evento e'
 // riconosciuto come "concerto" anche se il titolo non contiene le parole chiave sopra.
 const DESC_MARKERS_CONCERTI=['pianoforte:','compenso:','location:','indirizzo:','pagamento:','consegna:','ritiro:','referente1:','referente2:','referente3:'];
@@ -1726,6 +1726,18 @@ async function syncConcerti(){
   }
 }
 
+// Google vuole la data di fine ESCLUSIVA: per un evento di un giorno solo la fine
+// e' il giorno dopo. Scrivendo fine = inizio l'evento dura zero e i calendari non
+// lo disegnano. Cosi' invece appare, e appare solo nel giorno scelto.
+function pfGiornoDopo(d){
+  if(!d) return d;
+  var p=String(d).split('-');
+  if(p.length!==3) return d;
+  var dt=new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+  dt.setUTCDate(dt.getUTCDate()+1);
+  return dt.toISOString().slice(0,10);
+}
+
 async function salvaEventoCalendar(){
   if(!gToken){googleAuth();return;}
   const f=concertoForm;
@@ -1734,7 +1746,7 @@ async function salvaEventoCalendar(){
   btn.disabled=true;btn.textContent='Salvataggio...';
   try{
     const notes=[f.pianoforte?'Pianoforte: '+f.pianoforte:'',f.location?'Location: '+f.location:'',f.indirizzo?'Indirizzo: '+f.indirizzo:'',f.compenso?'Compenso: '+f.compenso+' +IVA':'',f.metodoPagamento?'Pagamento: '+f.metodoPagamento:'',f.dataConsegna&&f.oraConsegna?'Consegna: '+f.dataConsegna+' '+f.oraConsegna:'',f.dataRitiro&&f.oraRitiro?'Ritiro: '+f.dataRitiro+' '+f.oraRitiro:'',f.contatto1nome?'Referente1: '+f.contatto1nome+(f.contatto1tel?' '+f.contatto1tel:''):'',f.contatto2nome?'Referente2: '+f.contatto2nome+(f.contatto2tel?' '+f.contatto2tel:''):'',f.contatto3nome?'Referente3: '+f.contatto3nome+(f.contatto3tel?' '+f.contatto3tel:''):'',f.note?'Note: '+f.note:''].filter(Boolean).join('\n');
-    const event={summary:f.tipo.charAt(0).toUpperCase()+f.tipo.slice(1)+' - '+f.titolo,location:f.luogo||'',description:notes,start:{date:f.data},end:{date:f.data}};
+    const event={summary:f.tipo.charAt(0).toUpperCase()+f.tipo.slice(1)+' - '+f.titolo,location:f.luogo||'',description:notes,start:{date:f.data},end:{date:pfGiornoDopo(f.data)}};
     const res=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},body:JSON.stringify(event)});
     const data=await res.json();
     if(handleGoogleAuthError(data))return;
@@ -1889,7 +1901,7 @@ async function aggiornaEventoCalendar(){
       location:f.luogo||'',
       description:notes,
       start:{date:f.data},
-      end:{date:f.data},
+      end:{date:pfGiornoDopo(f.data)},
     };
     const res=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+editingConcertoId,{
       method:'PUT',
