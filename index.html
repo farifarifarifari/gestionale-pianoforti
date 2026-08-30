@@ -193,6 +193,9 @@ function load(){
   try{const d=lsGet('pf_contatti');if(d)contatti=JSON.parse(d);}catch(e){}
   try{const d=lsGet('pf_sync');if(d)lastSync=d;}catch(e){}
   try{const d=lsGet('pf_gtoken');if(d)gToken=d;}catch(e){}
+  // Se il file dei pagamenti su Drive contiene registrazioni che qui non ci sono
+  // (telefono nuovo, cache svuotata), le rimette dentro. Non cancella mai nulla.
+  if(gToken) setTimeout(function(){ leggiPagamentiDaDrive().then(function(n){ if(n) render(); }); },1500);
   const hash=window.location.hash;
   if(hash&&hash.includes('access_token')){
     const params=new URLSearchParams(hash.substring(1));
