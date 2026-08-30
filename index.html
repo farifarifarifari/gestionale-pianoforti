@@ -1760,6 +1760,24 @@ async function salvaEventoCalendar(){
   }
 }
 
+// Conteggio dell'anno solare mostrato: 1 gennaio - 31 dicembre. Sta sotto ai mesi e
+// non cambia scorrendo i mesi; cambia solo passando a un altro anno.
+function riepilogoAnnoConcerti(anno){
+  var dellAnno=concerti.filter(function(c){ return c.data && String(c.data).slice(0,4)===String(anno); });
+  var c3=0,c7=0,altri=0;
+  dellAnno.forEach(function(c){
+    var p=String(c.pianoforte||'').toUpperCase();
+    if(/\bC3\b/.test(p)) c3++;
+    else if(/\bC7\b/.test(p)) c7++;
+    else altri++;
+  });
+  function chip(et,n){ return '<span style="background:#f5f5f5;border-radius:8px;padding:4px 9px;white-space:nowrap">'+et+' <b style="color:#A01020">'+n+'</b></span>'; }
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:#888;margin:0 0 12px">'
+    + '<span>Anno '+anno+'</span>'
+    + chip('C3',c3) + chip('C7',c7) + chip('Altri',altri) + chip('Totale',dellAnno.length)
+    + '</div>';
+}
+
 function renderConcerti(){
   try{const d=lsGet('pf_concerti');if(d&&!concerti.length)concerti=JSON.parse(d);}catch(e){}
   if(showFormConcerto) return renderFormConcerto();
@@ -1767,6 +1785,7 @@ function renderConcerti(){
   let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">';
   h+='<div class="month-nav" style="margin:0;flex:1"><button onclick="prevMonthConcerti()">‹ '+MONTHS_SHORT[(concertiMonth+11)%12]+'</button><span>'+MONTHS[concertiMonth]+' '+concertiYear+'</span><button onclick="nextMonthConcerti()">'+MONTHS_SHORT[(concertiMonth+1)%12]+' ›</button></div>';
   h+='<button onclick="showFormConcerto=true;render()" class="btn-primary" style="width:auto;padding:8px 14px;font-size:12px">+ Nuovo</button></div>';
+  h+=riepilogoAnnoConcerti(concertiYear);
   h+='<div id="concerti-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>';
   if(gToken) h+='<button onclick="syncConcerti()" style="background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;color:#888;margin-bottom:12px;width:100%">↻ Aggiorna da Google Calendar</button>';
   else h+='<div class="card" style="text-align:center"><div style="font-size:13px;color:#888;margin-bottom:12px">Connetti Google dalla tab Sync</div></div>';
