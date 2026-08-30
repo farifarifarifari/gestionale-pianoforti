@@ -105,7 +105,11 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </button>
-    <button onclick="showTab('clienti')" id="tab-clienti">
+    <button onclick="showTab('prossimi')" id="tab-prossimi">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+3 giorni
+</button>
+<button onclick="showTab('clienti')" id="tab-clienti">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Clienti
     </button>
@@ -210,8 +214,9 @@ function load(){
 
 function showTab(t){
   currentTab=t;searchQ='';
-  ['dash','clienti','sync','analisi','import','contratti','concerti','disponibilita'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===t));
+  ['dash','prossimi','clienti','sync','analisi','import','contratti','concerti','disponibilita'].forEach(function(x){var b=document.getElementById('tab-'+x); if(b) b.classList.toggle('active',x===t);});
   render();
+  if(t==='prossimi') caricaProssimi(false);
 }
 function render(){
   const active=document.activeElement;
@@ -220,6 +225,7 @@ function render(){
   const selEnd=active&&typeof active.selectionEnd==='number'?active.selectionEnd:null;
   const m=document.getElementById('main-content');
   if(currentTab==='dash')m.innerHTML=renderDash();
+  else if(currentTab==='prossimi')m.innerHTML=renderProssimi();
   else if(currentTab==='clienti')m.innerHTML=renderClienti();
   else if(currentTab==='sync')m.innerHTML=renderSync();
   else if(currentTab==='analisi')m.innerHTML=renderAnalisi();
@@ -482,8 +488,103 @@ function togglePagato(cid,key){
     tutte.push({anno:anno,scad:key,pagato:true,nota:'',fonte:'mano',rif:''});
   }
   if(tutte.length) lsSet('pf_pagato_'+cid,JSON.stringify(tutte)); else lsDel('pf_pagato_'+cid);
+  salvaPagamentiSuDrive();
   render();
 }
+
+/* ---------- I pagamenti su Drive ----------
+   La spunta dei pagamenti nasce qui dentro e prima viveva solo nella memoria del
+   browser: cambiavi telefono e la perdevi. Ora ogni modifica viene riscritta in un
+   file che l'app crea e mantiene su Drive (permesso drive.file: l'app vede soltanto
+   i file suoi). Il file si consulta, non si compila a mano: a scriverlo e' l'app. */
+const PAG_FILE_NOME='PAGAMENTI PlayPiano.csv';
+let pagFileId=lsGet('pf_pagamenti_fileid')||'';
+let pagInCorso=false;
+
+function pagamentiTutti(){
+  const out=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||k.indexOf('pf_pagato_')!==0) continue;
+    const cid=k.slice(10);
+    let arr=[]; try{arr=JSON.parse(localStorage.getItem(k)||'[]');}catch(e){}
+    arr.forEach(function(x){ out.push({cid:cid,anno:x.anno,scad:x.scad||'',pagato:!!risultaPagato(x),nota:x.nota||'',fonte:x.fonte||'mano',rif:x.rif||''}); });
+  }
+  return out;
+}
+function nomeDiContatto(cid){
+  const c=(contatti||[]).filter(function(x){return x.id===cid;})[0];
+  return c?(c.nome||''):'';
+}
+function pagamentiCsv(){
+  const q=function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; };
+  const adesso=new Date().toISOString().slice(0,16).replace('T',' ');
+  const righe=[['contatto','nome','anno','scadenza','pagato','appunti','origine','riferimento','aggiornato'].map(q).join(',')];
+  pagamentiTutti().forEach(function(r){
+    righe.push([r.cid,nomeDiContatto(r.cid),r.anno,r.scad,r.pagato?'SI':'NO',r.nota,r.fonte,r.rif,adesso].map(q).join(','));
+  });
+  return '\ufeff'+righe.join('\r\n');
+}
+async function trovaFilePagamenti(){
+  const url='https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name)&q='+encodeURIComponent("name='"+PAG_FILE_NOME+"' and trashed=false");
+  const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
+  const data=await res.json();
+  if(data.error) return '';
+  return (data.files&&data.files[0])?data.files[0].id:'';
+}
+async function salvaPagamentiSuDrive(){
+  if(!gToken||pagInCorso) return;
+  pagInCorso=true;
+  try{
+    if(!pagFileId) pagFileId=await trovaFilePagamenti();
+    const corpo=new Blob([pagamentiCsv()],{type:'text/csv'});
+    if(pagFileId){
+      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files/'+pagFileId+'?uploadType=media',{method:'PATCH',headers:{Authorization:'Bearer '+gToken,'Content-Type':'text/csv'},body:corpo});
+      if(!res.ok){ pagFileId=''; lsDel('pf_pagamenti_fileid'); }
+    }
+    if(!pagFileId){
+      const meta={name:PAG_FILE_NOME,mimeType:'text/csv'};
+      const form=new FormData();
+      form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+      form.append('file',corpo);
+      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+gToken},body:form});
+      const data=await res.json();
+      if(data.id){ pagFileId=data.id; lsSet('pf_pagamenti_fileid',pagFileId); }
+    }
+  }catch(e){}
+  pagInCorso=false;
+}
+// All'avvio: quello che sta nel file e qui non c'e' viene rimesso dentro. Non
+// cancella mai niente in locale, serve a recuperare - per esempio su un telefono nuovo.
+async function leggiPagamentiDaDrive(){
+  if(!gToken) return 0;
+  try{
+    if(!pagFileId) pagFileId=await trovaFilePagamenti();
+    if(!pagFileId) return 0;
+    lsSet('pf_pagamenti_fileid',pagFileId);
+    const res=await fetch('https://www.googleapis.com/drive/v3/files/'+pagFileId+'?alt=media',{headers:{Authorization:'Bearer '+gToken}});
+    if(!res.ok) return 0;
+    const testo=await res.text();
+    const righe=testo.replace(/^\ufeff/,'').split(/\r?\n/).slice(1);
+    let aggiunte=0;
+    righe.forEach(function(r){
+      if(!r.trim()) return;
+      const celle=r.match(/"((?:[^"]|"")*)"/g);
+      if(!celle||celle.length<8) return;
+      const v=celle.map(function(x){return x.slice(1,-1).replace(/""/g,'"');});
+      const cid=v[0], anno=parseInt(v[2],10), scad=v[3];
+      if(!cid||!anno) return;
+      const esistenti=getPagati(cid);
+      if(esistenti.some(function(x){return x.anno===anno&&(x.scad||'')===scad;})) return;
+      esistenti.push({anno:anno,scad:scad,pagato:(v[4]==='SI'),nota:v[5]||'',fonte:v[6]||'mano',rif:v[7]||''});
+      esistenti.sort(function(a,b){return a.anno-b.anno;});
+      lsSet('pf_pagato_'+cid,JSON.stringify(esistenti));
+      aggiunte++;
+    });
+    return aggiunte;
+  }catch(e){ return 0; }
+}
+
 function anniInsoluti(cid,key,mese,giorno,tappo){
   const pagati=pagatiScad(cid,key).filter(risultaPagato).map(function(x){return x.anno;});
   return anniDovuti(mese,giorno,tappo).filter(function(a){return pagati.indexOf(a)<0;});
@@ -968,6 +1069,7 @@ function rimuoviPagato(){
   });
   if(restanti.length) lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(restanti));
   else lsDel('pf_pagato_'+pagatoCurrentContactId);
+  salvaPagamentiSuDrive();
   document.getElementById('pagato-modal').style.display='none';
   render();
 }
@@ -992,6 +1094,7 @@ function salvaPagato(){
   else if(nota.length) esistenti.push({anno,scad,pagato:false,nota,fonte,rif});
   esistenti.sort((a,b)=>a.anno-b.anno);
   lsSet('pf_pagato_'+pagatoCurrentContactId,JSON.stringify(esistenti));
+  salvaPagamentiSuDrive();
   document.getElementById('pagato-modal').style.display='none';
   render();
 }
@@ -1758,6 +1861,129 @@ async function salvaEventoCalendar(){
     alert('Errore: '+err.message);
     btn.disabled=false;btn.textContent='Salva sul calendario';
   }
+}
+
+/* ================= PROSSIMI 3 GIORNI =================
+   La giornata come la si vive fuori dall'ufficio: tutto quello che c'e' in
+   calendario - concerti, consegne, ritiri, appuntamenti in negozio, personali -
+   in un elenco solo, in ordine di ora, con l'indirizzo che apre Maps e il numero
+   che parte con un tocco. Le righe Consegna: e Ritiro: scritte dentro un concerto
+   diventano voci a se', perche' sono momenti diversi della giornata. */
+let prossimiEventi=[];
+let prossimiCaricatoAlle=0;
+const GIORNI_SETT=['domenica','lunedi','martedi','mercoledi','giovedi','venerdi','sabato'];
+
+function prossimiFinestra(){
+  const da=new Date(); da.setHours(0,0,0,0);
+  const a=new Date(da); a.setDate(a.getDate()+3);
+  return {da:da,a:a};
+}
+function prossimiTelefoni(desc){
+  const out=[];
+  (desc||'').split('\n').forEach(function(r){
+    const m=r.match(/^\s*Referente\d*\s*:\s*(.+)$/i);
+    if(!m) return;
+    const t=m[1].match(/(\+?\d[\d\s\.\-]{6,})/);
+    out.push({nome:m[1].replace(/(\+?\d[\d\s\.\-]{6,})/,'').trim(), tel:t?t[1].replace(/[\s\.\-]/g,''):''});
+  });
+  return out;
+}
+function prossimiLuogo(e){
+  const d=e.description||'';
+  const loc=(d.match(/^\s*Location\s*:\s*(.+)$/im)||[])[1]||'';
+  const ind=(d.match(/^\s*Indirizzo\s*:\s*(.+)$/im)||[])[1]||'';
+  return [e.location||'',loc,ind].filter(Boolean).join(' - ');
+}
+function prossimiRighe(){
+  const f=prossimiFinestra(), righe=[];
+  prossimiEventi.forEach(function(e){
+    if(!e.start) return;
+    const giornoIntero=!!e.start.date;
+    const inizio=giornoIntero?new Date(String(e.start.date).slice(0,10)+'T00:00:00'):new Date(e.start.dateTime);
+    if(isNaN(inizio)) return;
+    if(inizio>=f.da&&inizio<f.a) righe.push({quando:inizio,giornoIntero:giornoIntero,tipo:'',titolo:e.summary||'(senza titolo)',luogo:prossimiLuogo(e),tel:prossimiTelefoni(e.description),cal:e.__cal||''});
+    ['Consegna','Ritiro'].forEach(function(voce){
+      const m=(e.description||'').match(new RegExp('^\\s*'+voce+'\\s*:\\s*(\\d{4}-\\d{2}-\\d{2})\\s+(\\d{1,2}[:.]\\d{2})','im'));
+      if(!m) return;
+      const q=new Date(m[1]+'T'+m[2].replace('.',':')+':00');
+      if(isNaN(q)||q<f.da||q>=f.a) return;
+      righe.push({quando:q,giornoIntero:false,tipo:voce,titolo:voce+' - '+(e.summary||''),luogo:prossimiLuogo(e),tel:prossimiTelefoni(e.description),cal:e.__cal||''});
+    });
+  });
+  righe.sort(function(a,b){
+    const ga=a.quando.toDateString(), gb=b.quando.toDateString();
+    if(ga!==gb) return a.quando-b.quando;
+    if(a.giornoIntero!==b.giornoIntero) return a.giornoIntero?-1:1;
+    return a.quando-b.quando;
+  });
+  return righe;
+}
+async function caricaProssimi(forza){
+  if(!gToken){googleAuth();return;}
+  if(!forza && prossimiEventi.length && (Date.now()-prossimiCaricatoAlle)<300000) return;
+  const st=document.getElementById('prossimi-status');
+  if(st) st.innerHTML='<span class="spinner"></span>Carico...';
+  try{
+    const f=prossimiFinestra();
+    const calRes=await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',{headers:{Authorization:'Bearer '+gToken}});
+    const calList=await calRes.json();
+    if(handleGoogleAuthError(calList))return;
+    if(calList.error) throw new Error(calList.error.message);
+    const tutti=[];
+    for(const cal of (calList.items||[])){
+      const url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cal.id)+'/events?timeMin='+encodeURIComponent(f.da.toISOString())+'&timeMax='+encodeURIComponent(f.a.toISOString())+'&singleEvents=true&orderBy=startTime&maxResults=250';
+      const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
+      const data=await res.json();
+      if(data.error) continue;
+      (data.items||[]).forEach(function(e){ e.__cal=cal.summary||''; tutti.push(e); });
+    }
+    prossimiEventi=tutti;
+    prossimiCaricatoAlle=Date.now();
+    lsSet('pf_prossimi',JSON.stringify(tutti));
+    render();
+  }catch(err){ if(st) st.innerHTML='<span style="color:#A32D2D">Errore: '+err.message+'</span>'; }
+}
+function prossimiEtichettaGiorno(d){
+  const oggi=new Date(); oggi.setHours(0,0,0,0);
+  const diff=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-oggi)/86400000);
+  const testa=diff===0?'Oggi':(diff===1?'Domani':GIORNI_SETT[d.getDay()]);
+  return testa+' '+d.getDate()+' '+MONTHS_SHORT[d.getMonth()];
+}
+function prossimiTelHtml(t){
+  if(!t.tel) return t.nome?('<span style="color:#888">'+t.nome+'</span>'):'';
+  let wa=t.tel.replace(/\D/g,'');
+  if(wa.length===10&&wa.charAt(0)==='3') wa='39'+wa;
+  return '<a href="tel:'+t.tel+'" style="color:#A01020;text-decoration:none">&#9742; '+(t.nome||t.tel)+'</a>'
+    + ' <a href="https://wa.me/'+wa+'" target="_blank" style="color:#888;text-decoration:none;font-size:11px">WhatsApp</a>';
+}
+function renderProssimi(){
+  if(!prossimiEventi.length){ try{const d=lsGet('pf_prossimi'); if(d) prossimiEventi=JSON.parse(d);}catch(e){} }
+  let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+   + '<div style="flex:1;font-size:12px;color:#888">Oggi, domani e dopodomani: tutto quello che c\'e\' in calendario</div>'
+   + '<button onclick="caricaProssimi(true)" style="background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#888">Aggiorna</button></div>';
+  h+='<div id="prossimi-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>';
+  if(!gToken) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Connetti Google dalla tab Sync</div>';
+  const righe=prossimiRighe();
+  if(!righe.length) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Nessun impegno nei prossimi tre giorni</div>';
+  let giornoCorrente='';
+  righe.forEach(function(r){
+    const g=r.quando.toDateString();
+    if(g!==giornoCorrente){
+      giornoCorrente=g;
+      h+='<div class="section-title" style="margin:14px 0 6px">'+prossimiEtichettaGiorno(r.quando)+'</div>';
+    }
+    const ora=r.giornoIntero?'tutto il giorno':(('0'+r.quando.getHours()).slice(-2)+':'+('0'+r.quando.getMinutes()).slice(-2));
+    h+='<div class="card" style="padding:10px 12px;margin-bottom:8px">';
+    h+='<div style="display:flex;gap:10px;align-items:baseline">';
+    h+='<b style="color:#A01020;font-size:12px;min-width:74px;display:inline-block">'+ora+'</b>';
+    h+='<div style="flex:1">';
+    h+='<div style="font-size:14px;font-weight:500;color:#1a1a1a">'+(r.tipo?'<span style="background:#fdeced;color:#A01020;border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px">'+r.tipo+'</span>':'')+(r.titolo||'')+'</div>';
+    if(r.luogo) h+='<div style="margin-top:4px"><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.luogo)+'" target="_blank" style="font-size:12px;color:#A01020;text-decoration:none">&#128205; '+r.luogo+'</a></div>';
+    if(r.tel&&r.tel.length){ h+='<div style="margin-top:4px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px">'+r.tel.map(prossimiTelHtml).join('')+'</div>'; }
+    if(r.cal) h+='<div style="margin-top:4px;font-size:11px;color:#aaa">'+r.cal+'</div>';
+    h+='</div></div></div>';
+  });
+  return h;
 }
 
 // Conteggio dell'anno solare mostrato: 1 gennaio - 31 dicembre. Sta sotto ai mesi e
