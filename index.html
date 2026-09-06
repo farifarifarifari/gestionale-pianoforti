@@ -273,19 +273,29 @@ function render(){
   }
 }
 
-let dispMarca='';
+let dispMarca='',dispStato='N';
+const DISP_STATI=[['N','Noleggio'],['D','Deposito'],['V','Venduti']];
+// Cambiando gruppo si azzera anche la marca: le marche di un gruppo non sono
+// quelle dell'altro, e un filtro rimasto acceso farebbe sembrare vuoto un elenco pieno.
+function dispCambiaStato(s){ dispStato=s; dispMarca=''; render(); }
 function renderDisponibilita(){
-  const marche=[...new Set(pianos.map(p=>(p.marca||'').trim()).filter(Boolean))].sort();
+  const delGruppo=pianos.filter(p=>p.stato===dispStato);
+  const marche=[...new Set(delGruppo.map(p=>(p.marca||'').trim()).filter(Boolean))].sort();
   const q=(searchQ||'').toLowerCase();
-  const list=pianos
+  const list=delGruppo
     .filter(p=>!dispMarca||(p.marca||'').trim()===dispMarca)
     .filter(p=>!q||(p.modello||'').toLowerCase().includes(q)||(p.matricola||'').toLowerCase().includes(q)||String(p.numero).includes(q))
     .sort((a,b)=>(a.marca||'').localeCompare(b.marca||'')||(a.modello||'').localeCompare(b.modello||''));
-  let h=`<div class="card">
+  let h='<div style="display:flex;gap:6px;margin-bottom:10px">'+DISP_STATI.map(function(s){
+    const n=pianos.filter(p=>p.stato===s[0]).length;
+    const on=dispStato===s[0];
+    return '<button onclick="dispCambiaStato(\''+s[0]+'\')" style="flex:1;text-align:center;padding:8px 4px;border-radius:9px;font-size:11.5px;font-weight:600;line-height:1.25;cursor:pointer;font-family:inherit;border:0.5px solid '+(on?'#A01020':'#e0e0e0')+';background:'+(on?'rgba(160,16,32,0.9)':'#fff')+';color:'+(on?'#fff':'#999')+'">'+s[1]+'<span style="display:block;font-size:15px;font-weight:700;margin-top:1px">'+n+'</span></button>';
+  }).join('')+'</div>';
+  h+=`<div class="card">
     <div class="section-title">Disponibilità pianoforti</div>
     <select onchange="dispMarca=this.value;render()" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:10px;background:#fff">
-      <option value="">Tutte le marche (${pianos.length})</option>
-      ${marche.map(m=>`<option value="${m}" ${dispMarca===m?'selected':''}>${m} (${pianos.filter(p=>(p.marca||'').trim()===m).length})</option>`).join('')}
+      <option value="">Tutte le marche (${delGruppo.length})</option>
+      ${marche.map(m=>`<option value="${m}" ${dispMarca===m?'selected':''}>${m} (${delGruppo.filter(p=>(p.marca||'').trim()===m).length})</option>`).join('')}
     </select>
     <input id="disp-search" type="text" placeholder="Cerca per numero, modello o matricola..." value="${searchQ||''}" oninput="searchQ=this.value;render()" style="width:100%;padding:9px 10px;border:0.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:12px"/>
     <div style="font-size:12px;color:#888;margin-bottom:10px">${list.length} pianoforti trovati</div>
@@ -294,7 +304,7 @@ function renderDisponibilita(){
     h+='<div class="empty-state">Nessun pianoforte trovato.'+(pianos.length?' Prova a cambiare filtro.':' Importa il file Excel per vedere i dati.')+'</div>';
     return h;
   }
-  h+=list.slice(0,200).map(p=>`<div class="piano-card" style="cursor:default">
+  h+=list.slice(0,200).map(p=>`<div class="piano-card" onclick="openPianoDetail(${p.numero})">
     <div class="piano-header">
       <span style="font-weight:500;font-size:14px;flex:1">#${p.numero} — ${(p.marca||'').trim()} ${p.modello||''}</span>
       <span class="badge ${p.stato==='N'?'badge-blue':p.stato==='D'?'badge-orange':'badge-green'}">${p.stato}</span>
@@ -304,8 +314,8 @@ function renderDisponibilita(){
       <div>Anno costr.: <b>${p.annoCostr||'-'}</b></div>
       <div>Silent: <b>${p.silent==='S'?'Sì':'No'}</b></div>
       <div>Anno acq.: <b>${p.annoAcq?'20'+p.annoAcq:'-'}</b></div>
-      <div>Costo totale: <b>${p.costo?'€'+Math.round(p.costo).toLocaleString('it'):'-'}</b></div>
-      <div>Contanti: <b>${p.contanti?'€'+Math.round(p.contanti).toLocaleString('it'):'-'}</b></div>
+      <div>Costo totale: <b>${p.costo?'€ '+eurIt(p.costo):'-'}</b></div>
+      <div>Contanti: <b>${p.contanti?'€ '+eurIt(p.contanti):'-'}</b></div>
       <div style="grid-column:1/3">In carico: <b>${p.inCarico||'-'}</b></div>
     </div>
   </div>`).join('');
@@ -880,10 +890,56 @@ function openContattoDetail(id){
   document.getElementById('overlay').style.display='flex';
 }
 
+/* ================= SCHEMA PREZZI =================
+   Il canone non e' una percentuale qualsiasi del costo: guardando i 27 canoni in
+   uso, quelli che tornano sono tutti multipli di 60 - 360, 420, 480, 540, 600 -
+   perche' il prezzo lo si sceglie a gradini, non lo si calcola. Quindi il 20% e
+   il 25% del costo vengono arrotondati al sessanta piu' vicino, che e' poi il
+   numero che verrebbe fuori a mente.
+   Attenzione a una coincidenza che sul preventivo conta: con il canone al 20%,
+   "x1,30 piu' il canone" fa la stessa cifra dell'acquisto diretto a x1,50. */
+function gradinoCanone(v){ var g=Math.round(v/60)*60; return g<60?60:g; }
+// Il punto delle migliaia me lo metto da solo: toLocaleString('it') non lo mette
+// su tutti i dispositivi, e un prezzo scritto 3153 invece di 3.153 si legge male.
+function eurIt(v){ return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function numIt(v,dec){ return v.toFixed(dec).replace('.',','); }
+
+function schemaPrezzi(p){
+  var costo=parseFloat(p.costo)||0;
+  if(costo<=0) return '';
+  var c20=gradinoCanone(costo*0.20), c25=gradinoCanone(costo*0.25);
+  function rigaPrezzo(et,val){
+    return '<div style="display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">'
+      +'<span style="font-size:11.5px;color:#aaa">'+et+'</span>'
+      +'<span style="margin-left:auto;font-size:15px;font-weight:700;color:#A01020">&euro; '+eurIt(val)+'</span></div>';
+  }
+  var h='<div style="margin-top:18px"><div class="section-title">Noleggio annuale</div>';
+  h+='<div class="detail-row"><span class="detail-label">al 20% &mdash; rientro in '+numIt(costo/c20,1)+' anni</span><span style="font-weight:700;color:#A01020">&euro; '+eurIt(c20)+'</span></div>';
+  h+='<div class="detail-row"><span class="detail-label">al 25% &mdash; rientro in '+numIt(costo/c25,1)+' anni</span><span style="font-weight:700;color:#A01020">&euro; '+eurIt(c25)+'</span></div>';
+  h+='<div style="font-size:10px;color:#bbb;margin-top:5px">Gradini da 60 &euro;: '+eurIt(c20)+' &euro; sono il '+numIt((c20/costo)*100,1)+'% del costo, '+eurIt(c25)+' &euro; il '+numIt((c25/costo)*100,1)+'%.</div>';
+  // Sui pianoforti pagati poco la percentuale sputa cifre che non hai mai chiesto:
+  // il gradino piu' basso che usi davvero e' 360 euro l'anno. Non lo forzo, lo dico.
+  if(c20<360) h+='<div style="font-size:10px;color:#C8791A;margin-top:4px">Il gradino pi&ugrave; basso che usi &egrave; 360 &euro;/anno: qui la regola del 20% scende sotto.</div>';
+  h+='</div>';
+
+  h+='<div style="margin-top:18px"><div class="section-title">Se poi lo compra (canone '+eurIt(c20)+' &euro; incluso)</div>';
+  [1.40,1.35,1.30].forEach(function(m){
+    h+=rigaPrezzo(eurIt(costo)+' &times; '+numIt(m,2)+' + '+eurIt(c20), costo*m+c20);
+  });
+  h+='</div>';
+
+  h+='<div style="margin-top:18px"><div class="section-title">Acquisto diretto</div>';
+  [1.50,1.40,1.35,1.30].forEach(function(m){
+    h+=rigaPrezzo(eurIt(costo)+' &times; '+numIt(m,2), costo*m);
+  });
+  h+='</div>';
+  return h;
+}
+
 function openPianoDetail(num){
   const p=pianos.find(x=>x.numero==num);if(!p)return;
-  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acq.',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€'+Math.round(parseFloat(p.costo)).toLocaleString('it'):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Cinese',p.cinese==='C'?'Sì':''],['Note',p.note]].filter(r=>r[1]);
-  document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:14px">${(p.marca||'').trim()} ${p.modello||''} <span style="color:#666;font-size:13px">#${p.numero}</span></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span style="font-weight:500;text-align:right;max-width:60%">${v}</span></div>`).join('')}`;
+  const rows=[['Numero',p.numero],['Stato',p.stato],['Marca',(p.marca||'').trim()],['Modello',p.modello],['Matricola',p.matricola],['Categoria',p.categoria],['Colore',[p.colore,p.finitura].filter(Boolean).join(' ')],['Silent',p.silent==='S'?'Sì':null],['Anno acq.',p.annoAcq?'20'+p.annoAcq:null],['Costo',p.costo&&parseFloat(p.costo)>0?'€ '+eurIt(parseFloat(p.costo)):null],['Canone',p.canone&&parseFloat(p.canone)>0?'€'+Math.round(parseFloat(p.canone))+'/a':null],['Cliente',p.cliente],['Cinese',p.cinese==='C'?'Sì':''],['Note',p.note]].filter(r=>r[1]);
+  document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:14px">${(p.marca||'').trim()} ${p.modello||''} <span style="color:#666;font-size:13px">#${p.numero}</span></div>${rows.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span style="font-weight:500;text-align:right;max-width:60%">${v}</span></div>`).join('')}${schemaPrezzi(p)}`;
   document.getElementById('overlay').style.display='flex';
 }
 
