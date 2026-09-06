@@ -857,10 +857,26 @@ function renderImport(){
     ${pianos.length?`<div style="margin-top:14px;padding-top:14px;border-top:0.5px solid #f0f0f0"><div class="summary-row"><span>Piani</span><span style="font-weight:500">${pianos.length}</span></div><div class="summary-row"><span>Contatti</span><span style="font-weight:500">${contatti.length}</span></div><button onclick="clearAll()" style="margin-top:10px;padding:7px 14px;border:0.5px solid #F09595;border-radius:8px;font-size:12px;background:none;cursor:pointer;color:#A32D2D">Svuota tutto</button></div>`:''}`;
 }
 
+// Nell'indirizzo di Google il comune viene dopo il CAP: "Via Roma 12, 45100 Rovigo RO".
+// Nella scheda cliente serve quello - la via dice poco, il paese dice se e' dietro
+// l'angolo o dall'altra parte della provincia. La sigla finale si butta via.
+function comuneDa(indirizzo){
+  var s=String(indirizzo||'').replace(/\n/g,', ').replace(/\s+/g,' ').trim();
+  if(!s) return '';
+  var m=s.match(/\b\d{5}\b[\s,]*([^,]+)/);
+  if(m&&m[1]) return m[1].replace(/\s*\([A-Za-z]{2}\)\s*$/,'').replace(/\s+[A-Za-z]{2}$/,'').trim();
+  var p=s.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  if(p.length>2) return p[p.length-2];
+  return p[p.length-1]||s;
+}
+function indirizzoPiano(indirizzo){
+  return String(indirizzo||'').replace(/\n/g,', ').replace(/\s+/g,' ').trim();
+}
+
 function openContattoDetail(id){
   const c=contatti.find(x=>x.id===id);if(!c)return;
   const canone=parseCanone(c.notes);
-  document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:4px">${c.nome}</div>${canone?`<div style="font-size:13px;color:#A01020;font-weight:500;margin-bottom:12px">€${Math.round(canone)}/anno</div>`:'<div style="margin-bottom:12px"></div>'}${c.telefono?`<div class="detail-row"><span class="detail-label">Telefono</span><span style="font-weight:500">${c.telefono}</span></div>`:''}${c.notes?`<div style="margin:12px 0;font-size:12px;color:#666;background:#f5f5f5;padding:10px;border-radius:8px;white-space:pre-wrap">${c.notes}</div>`:''}<div style="margin-top:12px"><div class="section-title">Date importanti (${(c.dates||[]).length})</div>${!(c.dates||[]).length?'<div style="font-size:13px;color:#666">Nessuna data</div>':''}${(c.dates||[]).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(entry=>{const d=new Date(entry.date);const gg=calcolaGiorni(d.getMonth(),d.getDate());return`<div class="detail-row"><div><span style="font-weight:500">${d.getDate()} ${MONTHS[d.getMonth()]}</span>${entry.label?`<div style="font-size:11px;color:#666">${entry.label}</div>`:''}</div><span class="badge ${badgeCls(gg)}">${fmtGg(gg)}</span></div>`;}).join('')}</div>`;
+  document.getElementById('sheet-content').innerHTML=`<button class="close-btn" onclick="closeOverlay()">✕</button><div style="font-size:16px;font-weight:500;margin-bottom:4px">${c.nome}</div>${canone?`<div style="font-size:13px;color:#A01020;font-weight:500;margin-bottom:12px">€${Math.round(canone)}/anno</div>`:'<div style="margin-bottom:12px"></div>'}${c.telefono?`<div class="detail-row"><span class="detail-label">Telefono</span><span style="font-weight:500">${c.telefono}</span></div>`:''}${c.indirizzo?`<div class="detail-row"><span class="detail-label">Localit&agrave;</span><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(indirizzoPiano(c.indirizzo))}" target="_blank" style="font-weight:500;color:#A01020;text-decoration:none;text-align:right">&#128205; ${comuneDa(c.indirizzo)||indirizzoPiano(c.indirizzo)}</a></div><div style="font-size:11px;color:#aaa;text-align:right;margin:-4px 0 6px">${indirizzoPiano(c.indirizzo)}</div>`:''}${c.notes?`<div style="margin:12px 0;font-size:12px;color:#666;background:#f5f5f5;padding:10px;border-radius:8px;white-space:pre-wrap">${c.notes}</div>`:''}<div style="margin-top:12px"><div class="section-title">Date importanti (${(c.dates||[]).length})</div>${!(c.dates||[]).length?'<div style="font-size:13px;color:#666">Nessuna data</div>':''}${(c.dates||[]).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(entry=>{const d=new Date(entry.date);const gg=calcolaGiorni(d.getMonth(),d.getDate());return`<div class="detail-row"><div><span style="font-weight:500">${d.getDate()} ${MONTHS[d.getMonth()]}</span>${entry.label?`<div style="font-size:11px;color:#666">${entry.label}</div>`:''}</div><span class="badge ${badgeCls(gg)}">${fmtGg(gg)}</span></div>`;}).join('')}</div>`;
   document.getElementById('overlay').style.display='flex';
 }
 
