@@ -898,7 +898,10 @@ function openContattoDetail(id){
    numero che verrebbe fuori a mente.
    Attenzione a una coincidenza che sul preventivo conta: con il canone al 20%,
    "x1,30 piu' il canone" fa la stessa cifra dell'acquisto diretto a x1,50. */
-function gradinoCanone(v){ var g=Math.round(v/60)*60; return g<60?60:g; }
+// La prima tacca del listino e' 360 euro l'anno: sotto non si scende, nemmeno quando
+// il 20% del costo direbbe di meno. In quei casi 360 vale piu' del 20%, e la
+// percentuale vera va scritta invece di lasciarla intendere.
+function gradinoCanone(v){ var g=Math.round(v/60)*60; return g<360?360:g; }
 // Il punto delle migliaia me lo metto da solo: toLocaleString('it') non lo mette
 // su tutti i dispositivi, e un prezzo scritto 3153 invece di 3.153 si legge male.
 function eurIt(v){ return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
@@ -908,6 +911,7 @@ function schemaPrezzi(p){
   var costo=parseFloat(p.costo)||0;
   if(costo<=0) return '';
   var c20=gradinoCanone(costo*0.20), c25=gradinoCanone(costo*0.25);
+  var sottoTacca=(Math.round(costo*0.20/60)*60)<360;
   function rigaPrezzo(et,val){
     return '<div style="display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:0.5px solid #f0f0f0">'
       +'<span style="font-size:11.5px;color:#aaa">'+et+'</span>'
@@ -917,9 +921,7 @@ function schemaPrezzi(p){
   h+='<div class="detail-row"><span class="detail-label">al 20% &mdash; rientro in '+numIt(costo/c20,1)+' anni</span><span style="font-weight:700;color:#A01020">&euro; '+eurIt(c20)+'</span></div>';
   h+='<div class="detail-row"><span class="detail-label">al 25% &mdash; rientro in '+numIt(costo/c25,1)+' anni</span><span style="font-weight:700;color:#A01020">&euro; '+eurIt(c25)+'</span></div>';
   h+='<div style="font-size:10px;color:#bbb;margin-top:5px">Gradini da 60 &euro;: '+eurIt(c20)+' &euro; sono il '+numIt((c20/costo)*100,1)+'% del costo, '+eurIt(c25)+' &euro; il '+numIt((c25/costo)*100,1)+'%.</div>';
-  // Sui pianoforti pagati poco la percentuale sputa cifre che non hai mai chiesto:
-  // il gradino piu' basso che usi davvero e' 360 euro l'anno. Non lo forzo, lo dico.
-  if(c20<360) h+='<div style="font-size:10px;color:#C8791A;margin-top:4px">Il gradino pi&ugrave; basso che usi &egrave; 360 &euro;/anno: qui la regola del 20% scende sotto.</div>';
+  if(sottoTacca) h+='<div style="font-size:10px;color:#C8791A;margin-top:4px">Prima tacca: sotto i 360 &euro;/anno non si scende. Qui 360 &euro; sono il '+numIt((360/costo)*100,1)+'% del costo.</div>';
   h+='</div>';
 
   h+='<div style="margin-top:18px"><div class="section-title">Se poi lo compra (canone '+eurIt(c20)+' &euro; incluso)</div>';
