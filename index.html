@@ -1906,6 +1906,7 @@ let taskCaricateAlle=0;
 let taskAperto=true;
 let taskTutte=false;
 let taskPermesso=true;
+let taskMotivo='';
 const TASK_COLORI=['#3F51B5','#0F9D58','#C8791A','#8E24AA','#039BE5','#D81B60'];
 const TASK_QUANTE=4;
 
@@ -1942,7 +1943,7 @@ async function caricaAttivita(forza){
     const data=await res.json();
     // 403 = il token e' buono ma non copre le attivita': e' il permesso nuovo,
     // va chiesto una volta sola e con un bottone, non con un salto improvviso.
-    if(res.status===403||(data.error&&data.error.code===403)){ taskPermesso=false; render(); return; }
+    if(res.status===403||(data.error&&data.error.code===403)){ taskPermesso=false; taskMotivo=(data.error&&data.error.message)||''; render(); return; }
     if(handleGoogleAuthError(data))return;
     if(data.error) throw new Error(data.error.message);
     taskPermesso=true;
@@ -1976,9 +1977,21 @@ async function caricaAttivita(forza){
 function renderDaFare(){
   if(!gToken) return '';
   if(!taskPermesso){
-    return '<div class="card" style="padding:11px 12px;margin-bottom:10px;display:flex;align-items:center;gap:10px">'
-     +'<div style="flex:1;font-size:12px;color:#888">Per vedere qui le cose in sospeso serve il permesso alle attivita\' di Google.</div>'
-     +'<button onclick="googleAuth()" style="border:0.5px solid #A01020;background:#fff;color:#A01020;border-radius:8px;font-size:11.5px;font-weight:600;padding:6px 10px;cursor:pointer;white-space:nowrap">Consenti</button></div>';
+    // Due rifiuti diversi si somigliano: "non mi hai dato il permesso" si aggiusta
+    // con un consenso, "la Tasks API del progetto e' spenta" no, e un bottone
+    // Consenti manderebbe solo in giro a vuoto. Il messaggio vero di Google resta
+    // scritto sotto in piccolo, cosi' anche un terzo caso si riconosce.
+    var spenta=/has not been used|is disabled|accessNotConfigured|SERVICE_DISABLED/i.test(taskMotivo||'');
+    var testo=spenta
+      ? 'Le attivita\' non arrivano: nel progetto Google la Tasks API risulta spenta.'
+      : 'Per vedere qui le cose in sospeso serve il permesso alle attivita\' di Google.';
+    return '<div class="card" style="padding:11px 12px;margin-bottom:10px">'
+     +'<div style="display:flex;align-items:center;gap:10px">'
+     +'<div style="flex:1;font-size:12px;color:#888">'+testo+'</div>'
+     +(spenta?'':'<button onclick="googleAuth()" style="border:0.5px solid #A01020;background:#fff;color:#A01020;border-radius:8px;font-size:11.5px;font-weight:600;padding:6px 10px;cursor:pointer;white-space:nowrap">Consenti</button>')
+     +'</div>'
+     +(taskMotivo?'<div style="font-size:10px;color:#bbb;margin-top:6px;word-break:break-word">'+agEsc(taskMotivo).slice(0,220)+'</div>':'')
+     +'</div>';
   }
   if(!taskListe.length&&!taskAttivita.length) return '';
   let h='<div onclick="taskToggleBlocco()" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px">'
