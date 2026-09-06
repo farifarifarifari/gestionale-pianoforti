@@ -180,7 +180,7 @@ Agenda
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const CLIENT_ID='267543971233-fsb8goidid2r97ddgii7lvn0ntl9fjnr.apps.googleusercontent.com';
-const SCOPE='https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar';
+const SCOPE='https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks';
 const MONTHS=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 const MONTHS_SHORT=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 let pianos=[],contatti=[],lastSync=null,gToken=null;
@@ -244,7 +244,7 @@ function showTab(t){
   ['dash','prossimi','agenda','clienti','sync','analisi','import','contratti','concerti','disponibilita'].forEach(function(x){var b=document.getElementById('tab-'+x); if(b) b.classList.toggle('active',x===t);});
   render();
   if(t==='prossimi') caricaProssimi(false);
-  if(t==='agenda') caricaAgenda(false);
+  if(t==='agenda'){ caricaAgenda(false); caricaAttivita(false); }
 }
 function render(){
   const active=document.activeElement;
@@ -1892,6 +1892,259 @@ async function salvaEventoCalendar(){
   }
 }
 
+/* ================= DA FARE (Google Tasks) =================
+   Le cose in sospeso stanno sopra la giornata, dentro Agenda: si vedono senza
+   cercarle, e la barra si chiude quando danno fastidio. Vengono da Google Tasks,
+   che NON e' il calendario: gli eventi e le attivita' sono due mondi diversi e
+   l'API del calendario le attivita' non le restituisce, per questo serve una
+   chiamata a parte e un permesso a parte. Il quadratino le chiude davvero su
+   Google; "in agenda" apre il modulo dell'Agenda gia' compilato, cosi' una
+   pendenza diventa un impegno con una data. */
+let taskListe=[];
+let taskAttivita=[];
+let taskCaricateAlle=0;
+let taskAperto=true;
+let taskTutte=false;
+let taskPermesso=true;
+const TASK_COLORI=['#3F51B5','#0F9D58','#C8791A','#8E24AA','#039BE5','#D81B60'];
+const TASK_QUANTE=4;
+
+function taskColore(listId){
+  for(var i=0;i<taskListe.length;i++){ if(taskListe[i].id===listId) return TASK_COLORI[i%TASK_COLORI.length]; }
+  return '#bbb';
+}
+function taskNomeLista(listId){
+  for(var i=0;i<taskListe.length;i++){ if(taskListe[i].id===listId) return taskListe[i].titolo; }
+  return '';
+}
+
+// Una scadenza vecchia di quattro anni non e' "in ritardo": e' un relitto. Dirlo
+// a chiare lettere serve, nasconderlo no.
+function taskScadenza(due){
+  if(!due) return '';
+  var d=new Date(due); if(isNaN(d.getTime())) return '';
+  var oggi=new Date(); oggi.setHours(0,0,0,0);
+  var g=Math.round((new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())-oggi)/86400000);
+  if(g>1) return {testo:'fra '+g+' giorni',vecchia:false};
+  if(g===1) return {testo:'domani',vecchia:false};
+  if(g===0) return {testo:'oggi',vecchia:false};
+  var r=-g;
+  if(r>=365) { var a=Math.floor(r/365); return {testo:'scaduta da '+a+(a===1?' anno':' anni'),vecchia:true}; }
+  if(r>=30) { var m=Math.floor(r/30); return {testo:'scaduta da '+m+(m===1?' mese':' mesi'),vecchia:true}; }
+  return {testo:'scaduta da '+r+(r===1?' giorno':' giorni'),vecchia:true};
+}
+
+async function caricaAttivita(forza){
+  if(!gToken) return;
+  if(!forza && taskAttivita.length && (Date.now()-taskCaricateAlle)<180000) return;
+  try{
+    const res=await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=50',{headers:{Authorization:'Bearer '+gToken}});
+    const data=await res.json();
+    // 403 = il token e' buono ma non copre le attivita': e' il permesso nuovo,
+    // va chiesto una volta sola e con un bottone, non con un salto improvviso.
+    if(res.status===403||(data.error&&data.error.code===403)){ taskPermesso=false; render(); return; }
+    if(handleGoogleAuthError(data))return;
+    if(data.error) throw new Error(data.error.message);
+    taskPermesso=true;
+    taskListe=(data.items||[]).map(function(l){ return {id:l.id,titolo:l.title||''}; });
+    const tutte=[];
+    for(const lista of taskListe){
+      const u='https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(lista.id)+'/tasks?showCompleted=false&showHidden=false&maxResults=100';
+      const r2=await fetch(u,{headers:{Authorization:'Bearer '+gToken}});
+      const d2=await r2.json();
+      if(d2.error) continue;
+      (d2.items||[]).forEach(function(t){
+        if(t.status==='completed') return;
+        if(!t.title||!t.title.trim()) return;
+        tutte.push({id:t.id,listId:lista.id,titolo:t.title.trim(),note:t.notes||'',due:t.due||'',pos:t.position||''});
+      });
+    }
+    // Prima quelle con una data (le piu' vecchie in cima), poi quelle senza.
+    tutte.sort(function(a,b){
+      if(a.due&&b.due) return a.due.localeCompare(b.due);
+      if(a.due) return -1;
+      if(b.due) return 1;
+      return 0;
+    });
+    taskAttivita=tutte;
+    taskCaricateAlle=Date.now();
+    lsSet('pf_task',{liste:taskListe,attivita:taskAttivita});
+    render();
+  }catch(err){ /* silenzio: il blocco semplicemente non compare */ }
+}
+
+function renderDaFare(){
+  if(!gToken) return '';
+  if(!taskPermesso){
+    return '<div class="card" style="padding:11px 12px;margin-bottom:10px;display:flex;align-items:center;gap:10px">'
+     +'<div style="flex:1;font-size:12px;color:#888">Per vedere qui le cose in sospeso serve il permesso alle attivita\' di Google.</div>'
+     +'<button onclick="googleAuth()" style="border:0.5px solid #A01020;background:#fff;color:#A01020;border-radius:8px;font-size:11.5px;font-weight:600;padding:6px 10px;cursor:pointer;white-space:nowrap">Consenti</button></div>';
+  }
+  if(!taskListe.length&&!taskAttivita.length) return '';
+  let h='<div onclick="taskToggleBlocco()" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px">'
+   +'<span style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8a8a8a;flex:1">DA FARE</span>'
+   +(taskAttivita.length?'<span style="background:#A01020;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px">'+taskAttivita.length+'</span>':'')
+   +'<button onclick="event.stopPropagation();taskNuovo()" title="Nuova attivita\'" style="border:0.5px solid #e0e0e0;background:#fff;color:#A01020;border-radius:8px;font-size:11px;font-weight:700;padding:3px 9px;cursor:pointer;font-family:inherit">+</button>'
+   +'<span style="color:#bbb;font-size:13px">'+(taskAperto?'&#9662;':'&#9656;')+'</span></div>';
+  if(!taskAperto) return h;
+  if(!taskAttivita.length) return h+'<div style="text-align:center;font-size:11.5px;color:#aaa;padding:2px 0 10px">niente in sospeso</div>';
+
+  const quante=taskTutte?taskAttivita.length:Math.min(TASK_QUANTE,taskAttivita.length);
+  for(let i=0;i<quante;i++){
+    const t=taskAttivita[i];
+    const s=taskScadenza(t.due);
+    h+='<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 10px;background:#fff;border:0.5px solid #e0e0e0;border-radius:11px;margin-bottom:7px">'
+     +'<div onclick="taskCompleta('+i+')" title="Segna come fatta" style="width:16px;height:16px;border:1.5px solid #c9c9c9;border-radius:4px;flex-shrink:0;margin-top:1px;cursor:pointer"></div>'
+     +'<div onclick="taskApri('+i+')" style="flex:1;min-width:0;cursor:pointer">'
+     +'<div style="font-size:12.5px;line-height:1.3">'+agEsc(t.titolo)+'</div>'
+     +'<div style="font-size:10px;color:#aaa;margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
+     +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+taskColore(t.listId)+';flex-shrink:0"></span>'
+     +agEsc(taskNomeLista(t.listId))
+     +(s?' &middot; <span style="color:'+(s.vecchia?'#C8791A':'#888')+'">'+s.testo+'</span>':'')
+     +'</div></div>'
+     +'<button onclick="taskInAgenda('+i+')" style="border:0.5px solid #e0e0e0;background:#fafafa;color:#A01020;border-radius:8px;font-size:10.5px;font-weight:600;padding:5px 8px;white-space:nowrap;cursor:pointer;font-family:inherit;flex-shrink:0;align-self:center">in agenda</button>'
+     +'</div>';
+  }
+  if(taskAttivita.length>quante){
+    h+='<div onclick="taskTutte=true;render()" style="text-align:center;font-size:11px;color:#aaa;padding:4px 0 2px;cursor:pointer">altre '+(taskAttivita.length-quante)+'</div>';
+  }else if(taskTutte&&taskAttivita.length>TASK_QUANTE){
+    h+='<div onclick="taskTutte=false;render()" style="text-align:center;font-size:11px;color:#aaa;padding:4px 0 2px;cursor:pointer">mostra meno</div>';
+  }
+  return h;
+}
+
+function taskToggleBlocco(){ taskAperto=!taskAperto; lsSet('pf_task_aperto',taskAperto?'1':'0'); render(); }
+
+async function taskCompleta(i){
+  const t=taskAttivita[i]; if(!t||!gToken) return;
+  // Sparisce subito dall'elenco: se Google dice di no, torna al suo posto.
+  taskAttivita.splice(i,1); render();
+  try{
+    const u='https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(t.listId)+'/tasks/'+encodeURIComponent(t.id);
+    const res=await fetch(u,{method:'PATCH',headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},body:JSON.stringify({status:'completed'})});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    lsSet('pf_task',{liste:taskListe,attivita:taskAttivita});
+  }catch(err){
+    taskAttivita.splice(i,0,t); render();
+    alert('Non sono riuscito a chiuderla: '+err.message);
+  }
+}
+
+// Il titolo e le note dell'attivita' entrano nell'evento: sulle fatture le note
+// contengono CIG, determina e codice univoco, ed e' roba che serve averci dentro.
+function taskInAgenda(i){
+  const t=taskAttivita[i]; if(!t) return;
+  agForm=agFormVuoto();
+  agForm.titolo=t.titolo;
+  agForm.note=t.note||'';
+  if(t.due){ const d=new Date(t.due); if(!isNaN(d.getTime())){ const s=d.toISOString().slice(0,10); if(s>=agOggi()) agForm.data=s; } }
+  render();
+}
+
+/* Il passaggio nei due sensi: come per gli eventi, un'attivita' si crea, si
+   corregge e si cancella da qui, e su Google si vede subito. Cambiare lista
+   vuol dire in realta' rifarla nell'altra e togliere la vecchia - Google non
+   sa spostarle - ma da fuori si vede solo l'attivita' che cambia posto. */
+let taskForm=null;
+
+function taskFormVuoto(){
+  const pref=lsGet('pf_task_ultima_lista');
+  const lista=(pref&&taskNomeLista(pref))?pref:((taskListe[0]&&taskListe[0].id)||'');
+  return {modo:'nuovo',listId:lista,listOrig:'',id:'',titolo:'',note:'',data:''};
+}
+function taskNuovo(){ if(!taskListe.length){alert('Nessuna lista di attivita\' trovata su Google');return;} taskForm=taskFormVuoto(); render(); }
+function taskApri(i){
+  const t=taskAttivita[i]; if(!t) return;
+  let data='';
+  if(t.due){ const d=new Date(t.due); if(!isNaN(d.getTime())) data=d.toISOString().slice(0,10); }
+  taskForm={modo:'modifica',listId:t.listId,listOrig:t.listId,id:t.id,titolo:t.titolo,note:t.note||'',data:data,indice:i};
+  render();
+}
+function taskScegliLista(i){ if(taskListe[i]&&taskForm){ taskForm.listId=taskListe[i].id; render(); } }
+
+function renderTaskForm(){
+  const f=taskForm;
+  let h='<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
+   +'<button onclick="taskForm=null;render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:20px">&larr;</button>'
+   +'<div style="font-size:15px;font-weight:500">'+(f.modo==='nuovo'?'Nuova attivita\'':'Modifica attivita\'')+'</div></div>';
+
+  h+='<div class="section-title">Elenco</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px">'+taskListe.map(function(l,i){
+    const sel=f.listId===l.id;
+    const c=TASK_COLORI[i%TASK_COLORI.length];
+    return '<button onclick="taskScegliLista('+i+')" style="display:flex;align-items:center;gap:6px;border:'+(sel?'1.5px':'0.5px')+' solid '+(sel?c:'#e0e0e0')+';background:'+(sel?c+'1f':'#fff')+';border-radius:14px;padding:6px 12px;font-size:12px;cursor:pointer">'
+      +'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+c+'"></span>'+agEsc(l.titolo)+'</button>';
+  }).join('')+'</div>';
+
+  h+='<div class="section-title">Cosa</div>';
+  h+=campoInput('Titolo',f.titolo,'taskForm.titolo=this.value');
+  h+=campoInput('Scadenza (facoltativa)',f.data,'taskForm.data=this.value','date');
+  h+='<div style="margin-top:10px"><div style="font-size:12px;color:#888;margin-bottom:4px">Dettagli</div>'
+   +'<textarea onchange="taskForm.note=this.value" style="width:100%;min-height:70px;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'+agEsc(f.note)+'</textarea></div>';
+
+  h+='<button class="btn-primary" id="btn-salva-task" onclick="taskSalva()" style="margin-top:14px">'+(f.modo==='nuovo'?'Aggiungi alle attivita\'':'Salva le modifiche')+'</button>';
+  if(f.modo==='modifica'){
+    h+='<button onclick="taskElimina()" style="width:100%;margin-top:8px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:10px;font-size:13px;color:#A32D2D;cursor:pointer">Elimina l\'attivita\'</button>';
+  }
+  return h+'</div>';
+}
+
+function taskCorpo(f){
+  const c={title:f.titolo,notes:f.note||''};
+  if(f.data) c.due=f.data+'T00:00:00.000Z';
+  return c;
+}
+
+async function taskSalva(){
+  if(!gToken){googleAuth();return;}
+  const f=taskForm;
+  if(!f.titolo||!f.titolo.trim()){alert('Serve almeno il titolo');return;}
+  const btn=document.getElementById('btn-salva-task');
+  if(btn){btn.disabled=true;btn.textContent='Salvataggio...';}
+  try{
+    const corpo=taskCorpo(f);
+    if(f.modo==='modifica'&&f.listOrig&&f.listOrig!==f.listId){
+      // Google non sposta un'attivita' da una lista all'altra: la si rifa' di la'
+      // e si toglie di qua.
+      const c1=await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(f.listId)+'/tasks',{method:'POST',headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+      const d1=await c1.json();
+      if(handleGoogleAuthError(d1))return;
+      if(d1.error) throw new Error(d1.error.message);
+      await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(f.listOrig)+'/tasks/'+encodeURIComponent(f.id),{method:'DELETE',headers:{Authorization:'Bearer '+gToken}});
+    }else{
+      const url=(f.modo==='nuovo')
+        ? 'https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(f.listId)+'/tasks'
+        : 'https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(f.listId)+'/tasks/'+encodeURIComponent(f.id);
+      const res=await fetch(url,{method:(f.modo==='nuovo'?'POST':'PATCH'),headers:{Authorization:'Bearer '+gToken,'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+      const data=await res.json();
+      if(handleGoogleAuthError(data))return;
+      if(data.error) throw new Error(data.error.message);
+    }
+    lsSet('pf_task_ultima_lista',f.listId);
+    taskForm=null;
+    await caricaAttivita(true);
+  }catch(err){
+    alert('Errore: '+err.message);
+    if(btn){btn.disabled=false;btn.textContent='Aggiungi alle attivita\'';}
+  }
+}
+
+async function taskElimina(){
+  if(!taskForm||taskForm.modo!=='modifica') return;
+  if(!confirm('Eliminare "'+taskForm.titolo+'"?')) return;
+  try{
+    const res=await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+encodeURIComponent(taskForm.listOrig||taskForm.listId)+'/tasks/'+encodeURIComponent(taskForm.id),{method:'DELETE',headers:{Authorization:'Bearer '+gToken}});
+    if(res.status!==204&&res.status!==200){
+      const data=await res.json().catch(function(){return {};});
+      if(handleGoogleAuthError(data))return;
+      throw new Error((data.error&&data.error.message)||('errore '+res.status));
+    }
+    taskForm=null;
+    await caricaAttivita(true);
+  }catch(err){ alert('Errore: '+err.message); }
+}
+
 /* ================= AGENDA =================
    Il calendario di amministrazione non e' uno solo: e' il negozio (blu), Andrea
    (verde), Rodolfo (ocra), l'UFFICIO (viola), gli Aiutanti Collaboratori. Qui
@@ -1995,7 +2248,10 @@ function renderAgenda(){
   if(!agCalendari.length){ try{const d=lsGet('pf_calendari'); if(d) agCalendari=JSON.parse(d);}catch(e){} }
   if(!agEventi.length){ try{const d=lsGet('pf_agenda'); if(d) agEventi=JSON.parse(d);}catch(e){} }
   try{const d=lsGet('pf_agenda_nascosti'); if(d) agNascosti=JSON.parse(d);}catch(e){}
+  if(!taskAttivita.length){ try{const d=lsGet('pf_task'); if(d){ const o=JSON.parse(d); taskListe=o.liste||[]; taskAttivita=o.attivita||[]; } }catch(e){} }
+  try{const d=lsGet('pf_task_aperto'); if(d!==null&&d!==undefined) taskAperto=(d!=='0');}catch(e){}
   if(agForm) return renderAgendaForm();
+  if(taskForm) return renderTaskForm();
 
   let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
    + '<div style="flex:1;font-size:12px;color:#888">Tutti i calendari in un elenco solo. Tocca una voce per correggerla.</div>'
@@ -2003,6 +2259,7 @@ function renderAgenda(){
   h+='<div id="agenda-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>';
   if(!gToken) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Connetti Google dalla tab Sync</div>';
 
+  h+=renderDaFare();
   h+='<button class="btn-primary" onclick="agNuovo()" style="margin-bottom:12px">+ Nuovo impegno</button>';
   h+=agChips();
   h+='<div style="font-size:11px;color:#aaa;margin-bottom:10px"><label style="cursor:pointer"><input type="checkbox" '+(agMostraPassati?'checked':'')+' onchange="agMostraPassati=this.checked;render()" style="vertical-align:middle;margin-right:4px"/>mostra anche i giorni passati</label></div>';
