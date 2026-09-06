@@ -192,11 +192,21 @@ function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
 
+// Il token di Google vive circa un'ora. Prima restava salvato per sempre: la tab Sync
+// diceva "Google connesso" anche quando era morto, e il primo comando che chiamava
+// Google falliva chiedendo di ricollegarsi - il doppio passaggio. Ora la scadenza
+// si segna al momento del login e si controlla prima di fidarsi del token.
+function tokenBuono(){
+  var s=lsGet('pf_gtoken_scad');
+  if(!s) return true; // token vecchio stile, senza scadenza segnata: ci prova
+  return Date.now() < (parseInt(s,10)||0);
+}
+
 function load(){
   try{const d=lsGet('pf_pianos');if(d)pianos=JSON.parse(d);}catch(e){}
   try{const d=lsGet('pf_contatti');if(d)contatti=JSON.parse(d);}catch(e){}
   try{const d=lsGet('pf_sync');if(d)lastSync=d;}catch(e){}
-  try{const d=lsGet('pf_gtoken');if(d)gToken=d;}catch(e){}
+  try{const d=lsGet('pf_gtoken');if(d&&tokenBuono())gToken=d;else if(d){lsDel('pf_gtoken');lsDel('pf_gtoken_scad');}}catch(e){}
   // Se il file dei pagamenti su Drive contiene registrazioni che qui non ci sono
   // (telefono nuovo, cache svuotata), le rimette dentro. Non cancella mai nulla.
   if(gToken) setTimeout(function(){ leggiPagamentiDaDrive().then(function(n){ if(n) render(); }); },1500);
@@ -206,6 +216,8 @@ function load(){
     const tok=params.get('access_token');
     if(tok){
       gToken=tok;lsSet('pf_gtoken',tok);
+      var durata=parseInt(params.get('expires_in')||'3600',10);
+      lsSet('pf_gtoken_scad',String(Date.now()+(durata-120)*1000));
       history.replaceState(null,'',window.location.pathname);
       if(lsGet('pf_return_to_suite')){
         lsDel('pf_return_to_suite');
@@ -217,6 +229,14 @@ function load(){
       setTimeout(()=>{showTab('sync');syncContatti();},500);
     }
   }
+}
+
+// Scaricare i contatti era un passaggio a parte: chi si collegava a Google dalla Suite
+// tornava indietro collegato ma con la rubrica vuota, e Scadenze Noleggi non mostrava
+// niente. Se il collegamento c'e' e la rubrica manca, se la prende da sola.
+function scaricaRubricaSeManca(){
+  var daLogin=(window.location.hash||'').indexOf('access_token')>=0;
+  if(gToken && !contatti.length && !daLogin) setTimeout(function(){ syncContatti(); },600);
 }
 
 function showTab(t){
@@ -295,7 +315,7 @@ function renderDisponibilita(){
 
 function googleAuth(){
   const redirectUri=window.location.origin+window.location.pathname;
-  const params=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:redirectUri,response_type:'token',scope:SCOPE,prompt:'consent'});
+  const params=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:redirectUri,response_type:'token',scope:SCOPE,include_granted_scopes:'true'});
   const authUrl='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString();
   if(window.self!==window.top){
     // Siamo dentro un iframe (es. Playpiano Suite). Google rifiuta di mostrare
@@ -874,7 +894,7 @@ function handleExcel(input){
       }
       const clean=k=>String(k||'').trim();
       const num=k=>{const v=parseFloat(k);return isNaN(v)?'':v;};
-      const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA']),cinese:cinesiMap[parseFloat(r['NUMERO'])]||'',annoCostr:clean(r['ANNO COSTRUZIONE']),contanti:num(r['CONTANTI']),inCarico:clean(r['IN CARICO'])})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
+      const parsed=rows.map(r=>({numero:num(r['NUMERO']),stato:clean(r['STATO']).toUpperCase(),marca:clean(r['MARCA']),modello:clean(r['MODELLO']),matricola:clean(r['MATRICOLA']),silent:clean(r['SILENT']),categoria:clean(r['CATEGORIA']),colore:clean(r['COLORE']),finitura:clean(r['FINITURA']),annoAcq:clean(r['ANNO ACQUISTO   '])||clean(r['ANNO ACQUISTO']),fornitore:clean(r['FORNITORE']),costo:num(r['COSTO TOTALE '])||num(r['COSTO TOTALE']),cliente:clean(r['CLIENTI']),canone:num(r['CANONE ANNUO']),note:clean(r['NOTE PIANOFORTE']),annoVendita:num(r['ANNO VENDITA']),totVendita:num(r['TOTALE   VENDITA'])||num(r['TOTALE VENDITA']),cinese:cinesiMap[parseFloat(r['NUMERO'])]||'',annoCostr:clean(r['ANNO COSTRUZIONE']),contanti:num(r['CONTANTI']),inCarico:clean(r['IN CARICO'])})).filter(p=>p.numero&&p.stato&&['N','D','V','R','RIP'].includes(p.stato));
       pianos=parsed;lsSet('pf_pianos',pianos);lsSet('pf_import_excel',new Date().toISOString());
       status.innerHTML=`<span style="color:#A01020">✓ ${pianos.length} piani importati.</span>`;
       setTimeout(()=>showTab('dash'),1200);
@@ -2485,7 +2505,7 @@ function nextMonthConcerti(){concertiMonth++;if(concertiMonth>11){concertiMonth=
 function clearContatti(){if(!confirm('Svuotare i contatti?'))return;contatti=[];lastSync=null;lsDel('pf_contatti');lsDel('pf_sync');render();}
 function clearAll(){if(!confirm('Svuotare tutto?'))return;pianos=[];contatti=[];lastSync=null;gToken=null;['pf_pianos','pf_contatti','pf_sync','pf_gtoken'].forEach(k=>lsDel(k));render();}
 
-load();render();
+load();scaricaRubricaSeManca();render();
 </script>
 </body>
 </html>
