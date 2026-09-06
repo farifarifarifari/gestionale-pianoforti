@@ -275,12 +275,19 @@ function render(){
 
 let dispMarca='',dispStato='N';
 const DISP_STATI=[['N','Noleggio'],['D','Deposito'],['V','Venduti']];
+const MARCHE_IN_CIMA=['YAMAHA','KAWAI'];
 // Cambiando gruppo si azzera anche la marca: le marche di un gruppo non sono
 // quelle dell'altro, e un filtro rimasto acceso farebbe sembrare vuoto un elenco pieno.
 function dispCambiaStato(s){ dispStato=s; dispMarca=''; render(); }
 function renderDisponibilita(){
   const delGruppo=pianos.filter(p=>p.stato===dispStato);
-  const marche=[...new Set(delGruppo.map(p=>(p.marca||'').trim()).filter(Boolean))].sort();
+  // Alfabetico, ma Yamaha e Kawai in cima: sono le due marche che si cercano ogni
+  // giorno, e farle scorrere in mezzo alle altre e' tempo perso a ogni preventivo.
+  const marche=[...new Set(delGruppo.map(p=>(p.marca||'').trim()).filter(Boolean))].sort(function(a,b){
+    const ia=MARCHE_IN_CIMA.indexOf(a.toUpperCase()), ib=MARCHE_IN_CIMA.indexOf(b.toUpperCase());
+    if(ia>=0||ib>=0){ if(ia<0) return 1; if(ib<0) return -1; return ia-ib; }
+    return a.localeCompare(b);
+  });
   const q=(searchQ||'').toLowerCase();
   const list=delGruppo
     .filter(p=>!dispMarca||(p.marca||'').trim()===dispMarca)
