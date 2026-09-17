@@ -2716,6 +2716,26 @@ function riepilogoAnnoConcerti(anno){
     + '</div>';
 }
 
+// Come e' stato pagato, a colpo d'occhio: la sezione Concerti serve anche da
+// promemoria per la fatturazione. Sull'evento resta scritto il valore di sempre
+// (Fattura, Cash, Gratis, Sponsorizzazione): cambia solo come si mostra. Un
+// concerto senza pagamento indicato ha la sua targhetta grigia, perche' e'
+// proprio quello che resta da sistemare.
+const LOGO_P_MINI='<svg viewBox="96 78 64 60" width="15" height="14" style="vertical-align:-2px"><path fill="#c03" d="M126.94,136.09H97.65v-2.83h8.49L122.9,88.42s1.42-4.92-2.35-3.71-11.45,15.36-11.45,15.36l-1.84-.11s5.72-9.88,8.44-13.63c7.41-10.24,13.47-5,14,.67,14.85-13.74,27.94-3.55,24.14,11-3.71,14.28-22.38,26.26-28.11,13.73l-.74,1.48-6.33,20.21H127Zm3.5-39.71c-3.44,8.71-3.69,15.09-.56,16.33s8.47-3.13,11.91-11.84,3.7-15.09.57-16.33S133.89,87.67,130.44,96.38Z"/></svg>';
+function chipPagamento(metodo){
+  const st='background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400';
+  const v=String(metodo||'').trim();
+  const k=v.toLowerCase();
+  if(!v) return '<button title="Pagamento non indicato" style="'+st+';color:#b0b0b0">? pagamento</button>';
+  let icona, testo;
+  if(k.indexOf('cash')===0||k.indexOf('contant')===0){ icona='💵'; testo='Contanti'; }
+  else if(k.indexOf('fattura')===0){ icona='📝'; testo='Fattura'; }
+  else if(k.indexOf('sponsor')===0){ icona=LOGO_P_MINI; testo='Sponsor'; }
+  else if(k.indexOf('gratis')===0){ icona='<span style="color:#d32f2f;font-weight:700">✚</span>'; testo='Gratis'; }
+  else { icona='€'; testo=v.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+  return '<button title="Pagamento: '+v.replace(/"/g,'&quot;').replace(/</g,'&lt;')+'" style="'+st+'">'+icona+' '+testo+'</button>';
+}
+
 function renderConcerti(){
   try{const d=lsGet('pf_concerti');if(d&&!concerti.length)concerti=JSON.parse(d);}catch(e){}
   if(showFormConcerto) return renderFormConcerto();
@@ -2748,6 +2768,7 @@ function renderConcerti(){
     h+='<button style="background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400">📍 '+(c.luogo||'—')+'</button>';
     h+='<button style="background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400">🎹 '+(c.pianoforte||'—')+'</button>';
     h+='<button style="background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400">€ '+(c.compenso||'—')+'</button>';
+    h+=chipPagamento(c.metodoPagamento);
     h+='</div>';
     h+='</div>';
   });
