@@ -1882,7 +1882,7 @@ let concertiMonth=new Date().getMonth();
 let concertiYear=new Date().getFullYear();
 let showFormConcerto=false;
 let editingConcertoId=null;
-let concertoForm={titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C2',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
+let concertoForm={titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C3',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
 
 // Legge i campi che l'app scrive nella descrizione. Ogni campo deve stare a inizio
 // riga: prima bastava che la parola comparisse dentro una frase, e una riga come
@@ -1993,7 +1993,7 @@ async function salvaEventoCalendar(){
     if(handleGoogleAuthError(data))return;
     if(data.error) throw new Error(data.error.message);
     showFormConcerto=false;
-    concertoForm={titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C2',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
+    concertoForm={titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C3',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
     await syncConcerti();
   }catch(err){
     alert('Errore: '+err.message);
@@ -2809,7 +2809,7 @@ function renderReferenteRow(n,nome,tel){
 
 
 function concertoVuoto(){
-  return {titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C2',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
+  return {titolo:'',tipo:'concerto',data:'',luogo:'',location:'',indirizzo:'',pianoforte:'C3',compenso:'',metodoPagamento:'Fattura',dataConsegna:'',oraConsegna:'',dataRitiro:'',oraRitiro:'',contatto1nome:'',contatto1tel:'',contatto2nome:'',contatto2tel:'',contatto3nome:'',contatto3tel:'',note:''};
 }
 
 // Un concerto si corregge anche a cose fatte, settimane dopo: e' spesso proprio
