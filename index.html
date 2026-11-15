@@ -96,6 +96,52 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .paid-badge{font-size:10px;color:#2e7d32;background:#eaf7ea;padding:2px 6px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:3px}
 .hero-card{background:rgba(160,16,32,0.90);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end}
 .report-banner{background:#fff;border:1.5px solid #A01020;border-radius:12px;padding:14px;margin-bottom:12px}
+/* ---- SEZIONI IN GRANDE: Agenda, Prossimi 3 giorni, Da fare ----
+   Tasti e scritte della misura di quelli della home: si leggono stando in piedi,
+   in negozio o in macchina. Tutto incolonnato: si scorre solo in verticale, mai
+   di lato. L'ora sta in una fascia del colore del calendario, cosi' si capisce
+   di chi e' l'impegno senza leggere niente. */
+.gr-giorno{display:flex;align-items:center;gap:9px;margin:18px 0 9px}
+.gr-giorno b{font-size:15px;font-weight:700;color:#1a1a1a;text-transform:capitalize}
+.gr-giorno .q{font-size:12px;color:#999;white-space:nowrap}
+.gr-giorno .filo{flex:1;height:1px;background:#e8e4e4}
+.gr-ev{display:flex;background:#fff;border:0.5px solid #e0e0e0;border-radius:16px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 2px rgba(26,22,22,.05)}
+.gr-ora{flex-shrink:0;width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 6px;font-weight:700;text-align:center}
+.gr-ora .g{font-size:20px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.gr-ora .p{font-size:10.5px;line-height:1.2;font-weight:600;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.gr-corpo{flex:1;min-width:0;padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+.gr-tit{font-size:16.5px;font-weight:600;line-height:1.25;color:#1a1a1a;overflow-wrap:anywhere}
+.gr-sotto{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#999;flex-wrap:wrap}
+.gr-eti{display:inline-block;background:#fdeced;color:#A01020;border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:700;margin-right:7px}
+.gr-az{display:flex;flex-wrap:wrap;gap:8px}
+.gr-az a,.gr-az button{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-width:0;border:0.5px solid #e0e0e0;background:#fff;color:#1a1a1a;border-radius:11px;padding:10px 13px;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;text-decoration:none}
+.gr-az .et{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gr-tasto{display:flex;align-items:center;gap:12px;width:100%;background:#A01020;color:#fff;border:none;border-radius:14px;padding:16px;font-family:inherit;font-size:16px;font-weight:600;line-height:1.2;text-align:left;cursor:pointer;margin-bottom:12px}
+.gr-tasto .fr{margin-left:auto;opacity:.55;font-size:20px}
+.gr-chiaro{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#fff;color:#1a1a1a;border:0.5px solid #e0e0e0;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:12px}
+.gr-chip{display:inline-flex;align-items:center;gap:7px;min-width:0;border:1px solid #e0e0e0;background:#fff;color:#1a1a1a;border-radius:13px;padding:10px 13px;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer}
+.gr-chip .et{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gr-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.gr-pallino{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.gr-campo{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.gr-campo label{font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a8a8a}
+.gr-campo input,.gr-campo textarea{width:100%;box-sizing:border-box;font-family:inherit;font-size:16px;color:#1a1a1a;background:#fff;border:0.5px solid #e0e0e0;border-radius:13px;padding:14px;outline:none}
+.gr-campo textarea{min-height:80px;resize:vertical}
+.gr-campo input:focus,.gr-campo textarea:focus{border-color:#A01020}
+.gr-griglia{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gr-caltasto{display:flex;align-items:center;gap:8px;min-width:0;border:1px solid #e0e0e0;background:#fff;color:#1a1a1a;border-radius:13px;padding:13px 12px;font-family:inherit;font-size:13.5px;font-weight:600;text-align:left;cursor:pointer}
+.gr-caltasto .et{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gr-sw{display:flex;align-items:center;gap:12px;width:100%;background:#fff;border:0.5px solid #e0e0e0;border-radius:14px;padding:14px;font-family:inherit;font-size:15px;font-weight:600;color:#1a1a1a;text-align:left;cursor:pointer;margin-bottom:12px}
+.gr-leva{margin-left:auto;flex-shrink:0;width:52px;height:30px;border-radius:15px;background:#d8d8d8;position:relative;transition:background .15s}
+.gr-leva i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.gr-leva.on{background:#A01020}
+.gr-leva.on i{left:25px}
+.gr-vuoto{text-align:center;font-size:14px;color:#999;padding:26px 14px;background:#fff;border:0.5px dashed #ddd;border-radius:16px}
+.gr-testa{display:flex;align-items:center;gap:10px;margin:4px 0 10px;cursor:pointer}
+.gr-testa .nome{font-size:13px;font-weight:700;letter-spacing:.1em;color:#8a8a8a}
+.gr-testa .conta{background:#A01020;color:#fff;border-radius:11px;font-size:11.5px;font-weight:700;padding:2px 9px}
+.gr-piu{border:1px solid #e0e0e0;background:#fff;color:#A01020;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;padding:9px 13px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.gr-leva,.gr-leva i{transition:none}}
 </style>
 </head>
 <body>
@@ -2163,6 +2209,158 @@ async function caricaAttivita(forza){
   }catch(err){ /* silenzio: il blocco semplicemente non compare */ }
 }
 
+/* ================= AGENDA, PROSSIMI 3 GIORNI E DA FARE, IN GRANDE =================
+   Le tre sezioni che si guardano fuori dall'ufficio, rifatte con la misura dei
+   tasti della home: fascia colorata con l'ora a sinistra, titolo che si legge,
+   Mappa e Chiama grandi abbastanza da centrarli in piedi. Tutto in colonna:
+   si scorre solo in verticale, niente che scappi di lato. */
+
+// Sul giallo e sul celeste dei calendari il bianco sparisce: il testo della
+// fascia segue il colore, non il contrario.
+function agTestoSu(hex){
+  var c=String(hex||'').replace('#','');
+  if(c.length===3) c=c.charAt(0)+c.charAt(0)+c.charAt(1)+c.charAt(1)+c.charAt(2)+c.charAt(2);
+  if(c.length!==6) return '#fff';
+  var r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+  if(isNaN(r)||isNaN(g)||isNaN(b)) return '#fff';
+  return (0.299*r+0.587*g+0.114*b)>165 ? '#17131a' : '#fff';
+}
+
+// In Prossimi 3 giorni di ogni evento resta scritto solo il NOME del calendario,
+// non il suo id: il colore si cerca prima per id, poi per nome.
+function agColorePer(calId,nome){
+  if(calId){ var c=agCal(calId); if(c) return c.colore; }
+  for(var i=0;i<agCalendari.length;i++){ if(agCalendari[i].nome===nome) return agCalendari[i].colore; }
+  return '#A01020';
+}
+
+function grFascia(colore,grande,piccola){
+  return '<div class="gr-ora" style="background:'+colore+';color:'+agTestoSu(colore)+'">'
+    +'<span class="g">'+grande+'</span>'
+    +(piccola?'<span class="p">'+piccola+'</span>':'')+'</div>';
+}
+function grGiorno(etichetta,quanti){
+  return '<div class="gr-giorno"><b>'+agEsc(etichetta)+'</b>'
+    +(quanti?'<span class="q">'+quanti+(quanti===1?' impegno':' impegni')+'</span>':'')
+    +'<span class="filo"></span></div>';
+}
+function grCampo(etichetta,valore,onchange,tipo,id){
+  return '<div class="gr-campo"><label for="'+id+'">'+etichetta+'</label>'
+    +'<input id="'+id+'" type="'+(tipo||'text')+'" value="'+agEsc(valore||'')+'" onchange="'+onchange+'"></div>';
+}
+function grLeva(acceso,testo,onclick){
+  return '<button class="gr-sw" onclick="'+onclick+'">'+testo
+    +'<span class="gr-leva'+(acceso?' on':'')+'"><i></i></span></button>';
+}
+const GR_GIORNI=['dom','lun','mar','mer','gio','ven','sab'];
+function grOraDi(r){
+  if(r.giornoIntero) return {g:'&#9679;', p:'tutto il giorno'};
+  return {g:('0'+r.quando.getHours()).slice(-2)+':'+('0'+r.quando.getMinutes()).slice(-2),
+          p:GR_GIORNI[r.quando.getDay()]};
+}
+
+/* ---------------- Prossimi 3 giorni ---------------- */
+
+function grTelefono(t){
+  if(!t.tel) return t.nome?'<span class="et" style="font-size:12.5px;color:#999;align-self:center">'+agEsc(t.nome)+'</span>':'';
+  var wa=t.tel.replace(/\D/g,'');
+  if(wa.length===10&&wa.charAt(0)==='3') wa='39'+wa;
+  return '<a href="tel:'+agEsc(t.tel)+'"><span>&#9742;</span><span class="et">'+agEsc(t.nome||t.tel)+'</span></a>'
+    +'<a href="https://wa.me/'+wa+'" target="_blank" rel="noopener" style="color:#A01020"><span class="et">WhatsApp</span></a>';
+}
+
+function renderProssimi(){
+  if(!prossimiEventi.length){ try{const d=lsGet('pf_prossimi'); if(d) prossimiEventi=JSON.parse(d);}catch(e){} }
+  if(!agCalendari.length){ try{const d=lsGet('pf_calendari'); if(d) agCalendari=JSON.parse(d);}catch(e){} }
+  let h='<div style="font-size:12.5px;color:#888;margin-bottom:12px">Oggi, domani e dopodomani: tutto quello che c\'e\' in calendario</div>';
+  h+='<button class="gr-chiaro" onclick="caricaProssimi(true)">&#8635; Aggiorna da Google</button>';
+  h+='<div id="prossimi-status" style="font-size:12.5px;color:#888;margin-bottom:8px"></div>';
+  if(!gToken) return h+'<div class="gr-vuoto">Connetti Google dalla tab Sync</div>';
+  const righe=prossimiRighe();
+  if(!righe.length) return h+'<div class="gr-vuoto">Nessun impegno nei prossimi tre giorni</div>';
+
+  const quanti={};
+  righe.forEach(function(r){ const k=r.quando.toDateString(); quanti[k]=(quanti[k]||0)+1; });
+  let giorno='';
+  righe.forEach(function(r){
+    const k=r.quando.toDateString();
+    if(k!==giorno){ giorno=k; h+=grGiorno(prossimiEtichettaGiorno(r.quando),quanti[k]); }
+    const col=agColorePer(r.calId,r.cal);
+    const o=grOraDi(r);
+    h+='<div class="gr-ev">'+grFascia(col,o.g,o.p)+'<div class="gr-corpo">';
+    h+='<div class="gr-tit">'+(r.tipo?'<span class="gr-eti">'+agEsc(r.tipo)+'</span>':'')+agEsc(r.titolo)+'</div>';
+    const az=[];
+    if(r.luogo) az.push('<a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.luogo)+'" target="_blank" rel="noopener"><span>&#128205;</span><span class="et">'+agEsc(r.luogo)+'</span></a>');
+    if(r.tel&&r.tel.length) r.tel.forEach(function(t){ const b=grTelefono(t); if(b) az.push(b); });
+    if(az.length) h+='<div class="gr-az">'+az.join('')+'</div>';
+    if(r.cal) h+='<div class="gr-sotto"><i class="gr-pallino" style="background:'+col+'"></i>'+agEsc(r.cal)+'</div>';
+    h+='</div></div>';
+  });
+  return h;
+}
+
+/* ---------------- Agenda ---------------- */
+
+function agChips(){
+  if(!agCalendari.length) return '';
+  return '<div class="gr-chips">'+agCalendari.map(function(c,i){
+    const on=!agNascosti[c.id];
+    return '<button class="gr-chip" onclick="agToggleCal('+i+')" style="border-color:'+(on?c.colore:'#e0e0e0')+';background:'+(on?c.colore+'1f':'#fff')+';color:'+(on?'#1a1a1a':'#b5b0b0')+'">'
+      +'<i class="gr-pallino" style="background:'+(on?c.colore:'#ddd')+'"></i><span class="et">'+agEsc(c.nome)+'</span></button>';
+  }).join('')+'</div>';
+}
+
+function renderAgenda(){
+  if(!agCalendari.length){ try{const d=lsGet('pf_calendari'); if(d) agCalendari=JSON.parse(d);}catch(e){} }
+  if(!agEventi.length){ try{const d=lsGet('pf_agenda'); if(d) agEventi=JSON.parse(d);}catch(e){} }
+  try{const d=lsGet('pf_agenda_nascosti'); if(d) agNascosti=JSON.parse(d);}catch(e){}
+  if(!taskAttivita.length){ try{const d=lsGet('pf_task'); if(d){ const o=JSON.parse(d); taskListe=o.liste||[]; taskAttivita=o.attivita||[]; } }catch(e){} }
+  try{const d=lsGet('pf_task_aperto'); if(d!==null&&d!==undefined) taskAperto=(d!=='0');}catch(e){}
+  if(agForm) return renderAgendaForm();
+  if(taskForm) return renderTaskForm();
+
+  let h='<div style="font-size:12.5px;color:#888;margin-bottom:12px">Tutti i calendari in un elenco solo. Tocca un impegno per correggerlo.</div>';
+  h+='<div id="agenda-status" style="font-size:12.5px;color:#888;margin-bottom:8px"></div>';
+  if(!gToken) return h+'<div class="gr-vuoto">Connetti Google dalla tab Sync</div>';
+
+  h+=renderDaFare();
+  h+='<button class="gr-tasto" onclick="agNuovo()">&#43;&nbsp;&nbsp;Nuovo impegno<span class="fr">&rsaquo;</span></button>';
+  h+='<button class="gr-chiaro" onclick="caricaAgenda(true)">&#8635; Aggiorna da Google</button>';
+  h+=agChips();
+  h+='<div class="gr-chips"><button class="gr-chip" onclick="agMostraPassati=!agMostraPassati;render()"'
+   +(agMostraPassati?' style="border-color:#A01020;background:#fdeced"':'')+'>'
+   +(agMostraPassati?'&#10003; ':'')+'Mostra anche i giorni passati</button></div>';
+
+  agRigheCache=agRighe();
+  if(!agRigheCache.length) return h+'<div class="gr-vuoto">Nessun impegno da qui in avanti</div>';
+
+  const quanti={};
+  agRigheCache.forEach(function(r){ const k=r.quando.toDateString(); quanti[k]=(quanti[k]||0)+1; });
+  let giorno='';
+  agRigheCache.forEach(function(r,i){
+    const k=r.quando.toDateString();
+    if(k!==giorno){ giorno=k; h+=grGiorno(prossimiEtichettaGiorno(r.quando),quanti[k]); }
+    const col=agColore(r.calId);
+    const o=grOraDi(r);
+    h+='<div class="gr-ev" style="cursor:pointer" onclick="agApri('+i+')">'+grFascia(col,o.g,o.p)+'<div class="gr-corpo">';
+    h+='<div class="gr-tit">'+agEsc(r.titolo)+'</div>';
+    if(r.luogo) h+='<div class="gr-az"><span class="gr-chip" style="cursor:pointer"><span>&#128205;</span><span class="et">'+agEsc(r.luogo)+'</span></span></div>';
+    h+='<div class="gr-sotto"><i class="gr-pallino" style="background:'+col+'"></i>'+agEsc(agNome(r.calId))+'</div>';
+    h+='</div></div>';
+  });
+  return h;
+}
+
+/* ---------------- Da fare (Google Tasks) ---------------- */
+
+const GR_MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function taskGiornoCorto(due){
+  if(!due) return '';
+  var d=new Date(due);
+  if(isNaN(d.getTime())) return '';
+  return d.getUTCDate()+' '+GR_MESI[d.getUTCMonth()];
+}
+
 function renderDaFare(){
   if(!gToken) return '';
   if(!taskPermesso){
@@ -2174,47 +2372,129 @@ function renderDaFare(){
     var testo=spenta
       ? 'Le attivita\' non arrivano: nel progetto Google la Tasks API risulta spenta.'
       : 'Per vedere qui le cose in sospeso serve il permesso alle attivita\' di Google.';
-    return '<div class="card" style="padding:11px 12px;margin-bottom:10px">'
-     +'<div style="display:flex;align-items:center;gap:10px">'
-     +'<div style="flex:1;font-size:12px;color:#888">'+testo+'</div>'
-     +(spenta?'':'<button onclick="googleAuth()" style="border:0.5px solid #A01020;background:#fff;color:#A01020;border-radius:8px;font-size:11.5px;font-weight:600;padding:6px 10px;cursor:pointer;white-space:nowrap">Consenti</button>')
-     +'</div>'
-     +(taskMotivo?'<div style="font-size:10px;color:#bbb;margin-top:6px;word-break:break-word">'+agEsc(taskMotivo).slice(0,220)+'</div>':'')
+    return '<div class="card" style="padding:13px 14px;margin-bottom:12px">'
+     +'<div style="font-size:13.5px;color:#666;line-height:1.4;margin-bottom:'+(spenta?'0':'10px')+'">'+testo+'</div>'
+     +(spenta?'':'<button class="gr-chiaro" style="margin:0" onclick="googleAuth()">Dai il permesso</button>')
+     +(taskMotivo?'<div style="font-size:10.5px;color:#bbb;margin-top:8px;word-break:break-word">'+agEsc(taskMotivo).slice(0,220)+'</div>':'')
      +'</div>';
   }
   if(!taskListe.length&&!taskAttivita.length) return '';
-  let h='<div onclick="taskToggleBlocco()" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px">'
-   +'<span style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#8a8a8a;flex:1">DA FARE</span>'
-   +(taskAttivita.length?'<span style="background:#A01020;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px">'+taskAttivita.length+'</span>':'')
-   +'<button onclick="event.stopPropagation();taskNuovo()" title="Nuova attivita\'" style="border:0.5px solid #e0e0e0;background:#fff;color:#A01020;border-radius:8px;font-size:11px;font-weight:700;padding:3px 9px;cursor:pointer;font-family:inherit">+</button>'
-   +'<span style="color:#bbb;font-size:13px">'+(taskAperto?'&#9662;':'&#9656;')+'</span></div>';
+
+  let h='<div class="gr-testa" onclick="taskToggleBlocco()">'
+   +'<span class="nome">DA FARE</span>'
+   +(taskAttivita.length?'<span class="conta">'+taskAttivita.length+'</span>':'')
+   +'<span style="flex:1"></span>'
+   +'<button class="gr-piu" onclick="event.stopPropagation();taskNuovo()">&#43; Nuova</button>'
+   +'<span style="color:#bbb;font-size:15px">'+(taskAperto?'&#9662;':'&#9656;')+'</span></div>';
   if(!taskAperto) return h;
-  if(!taskAttivita.length) return h+'<div style="text-align:center;font-size:11.5px;color:#aaa;padding:2px 0 10px">niente in sospeso</div>';
+  if(!taskAttivita.length) return h+'<div class="gr-vuoto" style="padding:18px 14px;font-size:13.5px">Niente in sospeso</div>';
 
   const quante=taskTutte?taskAttivita.length:Math.min(TASK_QUANTE,taskAttivita.length);
   for(let i=0;i<quante;i++){
     const t=taskAttivita[i];
+    const col=taskColore(t.listId);
     const s=taskScadenza(t.due);
-    h+='<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 10px;background:#fff;border:0.5px solid #e0e0e0;border-radius:11px;margin-bottom:7px">'
-     +'<div onclick="taskCompleta('+i+')" title="Segna come fatta" style="width:16px;height:16px;border:1.5px solid #c9c9c9;border-radius:4px;flex-shrink:0;margin-top:1px;cursor:pointer"></div>'
-     +'<div onclick="taskApri('+i+')" style="flex:1;min-width:0;cursor:pointer">'
-     +'<div style="font-size:12.5px;line-height:1.3">'+agEsc(t.titolo)+'</div>'
-     +'<div style="font-size:10px;color:#aaa;margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
-     +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+taskColore(t.listId)+';flex-shrink:0"></span>'
-     +agEsc(taskNomeLista(t.listId))
-     +(s?' &middot; <span style="color:'+(s.vecchia?'#C8791A':'#888')+'">'+s.testo+'</span>':'')
-     +'</div></div>'
-     +'<button onclick="taskInAgenda('+i+')" style="border:0.5px solid #e0e0e0;background:#fafafa;color:#A01020;border-radius:8px;font-size:10.5px;font-weight:600;padding:5px 8px;white-space:nowrap;cursor:pointer;font-family:inherit;flex-shrink:0;align-self:center">in agenda</button>'
-     +'</div>';
+    const giorno=taskGiornoCorto(t.due);
+    h+='<div class="gr-ev">'+grFascia(col,giorno||'&#9679;',giorno?'scadenza':'senza data')+'<div class="gr-corpo">';
+    h+='<div class="gr-tit" style="cursor:pointer" onclick="taskApri('+i+')">'+agEsc(t.titolo)+'</div>';
+    h+='<div class="gr-az">'
+      +'<button onclick="taskCompleta('+i+')" style="border-color:#1f8a4c;color:#1f8a4c;font-weight:600"><span>&#10003;</span><span class="et">Fatta</span></button>'
+      +'<button onclick="taskInAgenda('+i+')"><span>&#128197;</span><span class="et">In agenda</span></button>'
+      +'</div>';
+    h+='<div class="gr-sotto"><i class="gr-pallino" style="background:'+col+'"></i>'+agEsc(taskNomeLista(t.listId))
+      +(s?'<span style="color:'+(s.vecchia?'#C8791A':'#999')+'">&middot; '+s.testo+'</span>':'')+'</div>';
+    h+='</div></div>';
   }
   if(taskAttivita.length>quante){
-    h+='<div onclick="taskTutte=true;render()" style="text-align:center;font-size:11px;color:#aaa;padding:4px 0 2px;cursor:pointer">altre '+(taskAttivita.length-quante)+'</div>';
+    h+='<button class="gr-chiaro" onclick="taskTutte=true;render()">Vedi le altre '+(taskAttivita.length-quante)+'</button>';
   }else if(taskTutte&&taskAttivita.length>TASK_QUANTE){
-    h+='<div onclick="taskTutte=false;render()" style="text-align:center;font-size:11px;color:#aaa;padding:4px 0 2px;cursor:pointer">mostra meno</div>';
+    h+='<button class="gr-chiaro" onclick="taskTutte=false;render()">Mostra meno</button>';
   }
   return h;
 }
 
+/* ---------------- I due moduli ---------------- */
+
+const GR_ORE=['08:30','09:00','10:00','11:00','14:30','16:00','18:00'];
+function agOraPiu(ora,minuti){
+  var p=String(ora||'09:00').split(':');
+  var m=(parseInt(p[0],10)||0)*60+(parseInt(p[1],10)||0)+minuti;
+  m=((m%1440)+1440)%1440;
+  return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);
+}
+// Scegliendo l'ora di inizio la fine si sposta di conseguenza: l'ora di fine la
+// si correggeva quasi sempre a mano subito dopo.
+function agScegliOra(v){ if(!agForm) return; agForm.oraInizio=v; agForm.oraFine=agOraPiu(v,60); render(); }
+
+function renderAgendaForm(){
+  const f=agForm;
+  const scrivibili=agCalendari.filter(function(c){return c.scrivibile;});
+  let h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
+   +'<button onclick="agForm=null;render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:22px;padding:0">&larr;</button>'
+   +'<div style="font-size:18px;font-weight:700">'+(f.modo==='nuovo'?'Nuovo impegno':'Modifica impegno')+'</div></div>';
+
+  h+='<div class="gr-campo"><label>Su quale calendario</label><div class="gr-griglia">'+scrivibili.map(function(c,i){
+    const sel=f.calendarId===c.id;
+    return '<button class="gr-caltasto" onclick="agScegliCal('+i+')" style="border-color:'+(sel?c.colore:'#e0e0e0')+';border-width:'+(sel?'2px':'1px')+';background:'+(sel?c.colore+'22':'#fff')+'">'
+      +'<i class="gr-pallino" style="background:'+c.colore+'"></i><span class="et">'+agEsc(c.nome)+'</span></button>';
+  }).join('')+'</div></div>';
+
+  h+=grCampo('Quando',f.data,'agForm.data=this.value','date','gr-data');
+  h+=grLeva(f.tuttoIlGiorno,'Tutto il giorno','agForm.tuttoIlGiorno=!agForm.tuttoIlGiorno;render()');
+  if(!f.tuttoIlGiorno){
+    h+='<div class="gr-campo"><label>Ora di inizio</label><div class="gr-chips" style="margin:0">'+GR_ORE.map(function(o){
+      const sel=f.oraInizio===o;
+      return '<button class="gr-chip" onclick="agScegliOra(\''+o+'\')" style="font-variant-numeric:tabular-nums'+(sel?';border-color:#A01020;background:#A01020;color:#fff;font-weight:700':'')+'">'+o+'</button>';
+    }).join('')+'</div></div>';
+    h+='<div class="gr-griglia">'
+      +grCampo('Dalle',f.oraInizio,'agForm.oraInizio=this.value','time','gr-dalle')
+      +grCampo('Alle',f.oraFine,'agForm.oraFine=this.value','time','gr-alle')+'</div>';
+  }
+  h+=grCampo('Fino al giorno (se dura di piu\')',f.dataFine,'agForm.dataFine=this.value','date','gr-datafine');
+
+  h+=grCampo('Cosa',f.titolo,'agForm.titolo=this.value','text','gr-titolo');
+  const recenti=agTitoliRecenti(f.calendarId);
+  if(recenti.length){
+    h+='<div class="gr-chips" style="margin-top:-4px">'+recenti.map(function(t,i){
+      return '<button class="gr-chip" onclick="agUsaTitolo('+i+')" style="font-size:12.5px;color:#666"><span class="et">'+agEsc(t)+'</span></button>';
+    }).join('')+'</div>';
+  }
+  h+=grCampo('Dove',f.luogo,'agForm.luogo=this.value','text','gr-luogo');
+  h+='<div class="gr-campo"><label for="ag-note">Note</label>'
+   +'<textarea id="ag-note" onchange="agForm.note=this.value">'+agEsc(f.note||'')+'</textarea></div>';
+
+  h+='<div id="ag-form-status" style="font-size:12.5px;color:#888;margin:10px 0"></div>';
+  h+='<button class="gr-tasto" id="btn-salva-agenda" style="justify-content:center" onclick="agSalva()">'+(f.modo==='nuovo'?'Salva sul calendario':'Salva le modifiche')+'</button>';
+  if(f.modo==='modifica'){
+    h+='<button class="gr-chiaro" style="color:#A32D2D" onclick="agElimina()">Elimina dal calendario</button>';
+  }
+  return h;
+}
+
+function renderTaskForm(){
+  const f=taskForm;
+  let h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
+   +'<button onclick="taskForm=null;render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:22px;padding:0">&larr;</button>'
+   +'<div style="font-size:18px;font-weight:700">'+(f.modo==='nuovo'?'Nuova attivita\'':'Modifica attivita\'')+'</div></div>';
+
+  h+='<div class="gr-campo"><label>In quale elenco</label><div class="gr-griglia">'+taskListe.map(function(l,i){
+    const sel=f.listId===l.id;
+    const c=TASK_COLORI[i%TASK_COLORI.length];
+    return '<button class="gr-caltasto" onclick="taskScegliLista('+i+')" style="border-color:'+(sel?c:'#e0e0e0')+';border-width:'+(sel?'2px':'1px')+';background:'+(sel?c+'22':'#fff')+'">'
+      +'<i class="gr-pallino" style="background:'+c+'"></i><span class="et">'+agEsc(l.titolo)+'</span></button>';
+  }).join('')+'</div></div>';
+
+  h+=grCampo('Cosa',f.titolo,'taskForm.titolo=this.value','text','gr-task-tit');
+  h+=grCampo('Scadenza (facoltativa)',f.data,'taskForm.data=this.value','date','gr-task-data');
+  h+='<div class="gr-campo"><label for="gr-task-note">Dettagli</label>'
+   +'<textarea id="gr-task-note" onchange="taskForm.note=this.value">'+agEsc(f.note||'')+'</textarea></div>';
+
+  h+='<button class="gr-tasto" id="btn-salva-task" style="justify-content:center" onclick="taskSalva()">'+(f.modo==='nuovo'?'Aggiungi alle attivita\'':'Salva le modifiche')+'</button>';
+  if(f.modo==='modifica'){
+    h+='<button class="gr-chiaro" style="color:#A32D2D" onclick="taskElimina()">Elimina l\'attivita\'</button>';
+  }
+  return h;
+}
 function taskToggleBlocco(){ taskAperto=!taskAperto; lsSet('pf_task_aperto',taskAperto?'1':'0'); render(); }
 
 async function taskCompleta(i){
@@ -2264,33 +2544,6 @@ function taskApri(i){
   render();
 }
 function taskScegliLista(i){ if(taskListe[i]&&taskForm){ taskForm.listId=taskListe[i].id; render(); } }
-
-function renderTaskForm(){
-  const f=taskForm;
-  let h='<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
-   +'<button onclick="taskForm=null;render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:20px">&larr;</button>'
-   +'<div style="font-size:15px;font-weight:500">'+(f.modo==='nuovo'?'Nuova attivita\'':'Modifica attivita\'')+'</div></div>';
-
-  h+='<div class="section-title">Elenco</div>';
-  h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px">'+taskListe.map(function(l,i){
-    const sel=f.listId===l.id;
-    const c=TASK_COLORI[i%TASK_COLORI.length];
-    return '<button onclick="taskScegliLista('+i+')" style="display:flex;align-items:center;gap:6px;border:'+(sel?'1.5px':'0.5px')+' solid '+(sel?c:'#e0e0e0')+';background:'+(sel?c+'1f':'#fff')+';border-radius:14px;padding:6px 12px;font-size:12px;cursor:pointer">'
-      +'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+c+'"></span>'+agEsc(l.titolo)+'</button>';
-  }).join('')+'</div>';
-
-  h+='<div class="section-title">Cosa</div>';
-  h+=campoInput('Titolo',f.titolo,'taskForm.titolo=this.value');
-  h+=campoInput('Scadenza (facoltativa)',f.data,'taskForm.data=this.value','date');
-  h+='<div style="margin-top:10px"><div style="font-size:12px;color:#888;margin-bottom:4px">Dettagli</div>'
-   +'<textarea onchange="taskForm.note=this.value" style="width:100%;min-height:70px;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'+agEsc(f.note)+'</textarea></div>';
-
-  h+='<button class="btn-primary" id="btn-salva-task" onclick="taskSalva()" style="margin-top:14px">'+(f.modo==='nuovo'?'Aggiungi alle attivita\'':'Salva le modifiche')+'</button>';
-  if(f.modo==='modifica'){
-    h+='<button onclick="taskElimina()" style="width:100%;margin-top:8px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:10px;font-size:13px;color:#A32D2D;cursor:pointer">Elimina l\'attivita\'</button>';
-  }
-  return h+'</div>';
-}
 
 function taskCorpo(f){
   const c={title:f.titolo,notes:f.note||''};
@@ -2431,59 +2684,11 @@ function agRighe(){
   return out;
 }
 
-function agChips(){
-  if(!agCalendari.length) return '';
-  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'+agCalendari.map(function(c,i){
-    const on=!agNascosti[c.id];
-    return '<button onclick="agToggleCal('+i+')" style="display:flex;align-items:center;gap:5px;border:0.5px solid '+(on?c.colore:'#e0e0e0')+';background:'+(on?c.colore+'14':'#fff')+';color:'+(on?'#1a1a1a':'#bbb')+';border-radius:14px;padding:4px 10px;font-size:11px;cursor:pointer">'
-      +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(on?c.colore:'#ddd')+'"></span>'+agEsc(c.nome)+'</button>';
-  }).join('')+'</div>';
-}
 function agToggleCal(i){
   const c=agCalendari[i]; if(!c) return;
   if(agNascosti[c.id]) delete agNascosti[c.id]; else agNascosti[c.id]=true;
   lsSet('pf_agenda_nascosti',agNascosti);
   render();
-}
-
-function renderAgenda(){
-  if(!agCalendari.length){ try{const d=lsGet('pf_calendari'); if(d) agCalendari=JSON.parse(d);}catch(e){} }
-  if(!agEventi.length){ try{const d=lsGet('pf_agenda'); if(d) agEventi=JSON.parse(d);}catch(e){} }
-  try{const d=lsGet('pf_agenda_nascosti'); if(d) agNascosti=JSON.parse(d);}catch(e){}
-  if(!taskAttivita.length){ try{const d=lsGet('pf_task'); if(d){ const o=JSON.parse(d); taskListe=o.liste||[]; taskAttivita=o.attivita||[]; } }catch(e){} }
-  try{const d=lsGet('pf_task_aperto'); if(d!==null&&d!==undefined) taskAperto=(d!=='0');}catch(e){}
-  if(agForm) return renderAgendaForm();
-  if(taskForm) return renderTaskForm();
-
-  let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
-   + '<div style="flex:1;font-size:12px;color:#888">Tutti i calendari in un elenco solo. Tocca una voce per correggerla.</div>'
-   + '<button onclick="caricaAgenda(true)" style="background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#888">Aggiorna</button></div>';
-  h+='<div id="agenda-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>';
-  if(!gToken) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Connetti Google dalla tab Sync</div>';
-
-  h+=renderDaFare();
-  h+='<button class="btn-primary" onclick="agNuovo()" style="margin-bottom:12px">+ Nuovo impegno</button>';
-  h+=agChips();
-  h+='<div style="font-size:11px;color:#aaa;margin-bottom:10px"><label style="cursor:pointer"><input type="checkbox" '+(agMostraPassati?'checked':'')+' onchange="agMostraPassati=this.checked;render()" style="vertical-align:middle;margin-right:4px"/>mostra anche i giorni passati</label></div>';
-
-  agRigheCache=agRighe();
-  if(!agRigheCache.length) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Nessun impegno da qui in avanti</div>';
-
-  let giorno='';
-  agRigheCache.forEach(function(r,i){
-    const g=r.quando.toDateString();
-    if(g!==giorno){ giorno=g; h+='<div class="section-title" style="margin:14px 0 6px">'+prossimiEtichettaGiorno(r.quando)+'</div>'; }
-    const ora=r.giornoIntero?'tutto il giorno':(('0'+r.quando.getHours()).slice(-2)+':'+('0'+r.quando.getMinutes()).slice(-2));
-    h+='<div class="card" style="padding:10px 12px;margin-bottom:8px;cursor:pointer;border-left:3px solid '+agColore(r.calId)+'" onclick="agApri('+i+')">';
-    h+='<div style="display:flex;gap:10px;align-items:baseline">';
-    h+='<b style="color:#A01020;font-size:12px;min-width:74px;display:inline-block">'+ora+'</b>';
-    h+='<div style="flex:1">';
-    h+='<div style="font-size:14px;font-weight:500;color:#1a1a1a">'+agEsc(r.titolo)+'</div>';
-    if(r.luogo) h+='<div style="margin-top:4px;font-size:12px;color:#888">'+agEsc(r.luogo)+'</div>';
-    h+='<div style="margin-top:4px;font-size:11px;color:#aaa;display:flex;align-items:center;gap:5px">'+agPallino(r.calId)+agEsc(agNome(r.calId))+'</div>';
-    h+='</div></div></div>';
-  });
-  return h;
 }
 
 function agFormVuoto(){
@@ -2521,49 +2726,6 @@ function agApri(i){
   agForm={modo:'modifica',calendarId:r.calId,calOrig:r.calId,id:r.id,titolo:e.summary||'',data:data,dataFine:dataFine,
           tuttoIlGiorno:gi,oraInizio:oraI||'09:00',oraFine:oraF||'10:00',luogo:e.location||'',note:e.description||''};
   render();
-}
-
-function renderAgendaForm(){
-  const f=agForm;
-  const scrivibili=agCalendari.filter(function(c){return c.scrivibile;});
-  let h='<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
-   +'<button onclick="agForm=null;render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:20px">&larr;</button>'
-   +'<div style="font-size:15px;font-weight:500">'+(f.modo==='nuovo'?'Nuovo impegno':'Modifica impegno')+'</div></div>';
-
-  h+='<div class="section-title">Calendario</div>';
-  h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px">'+scrivibili.map(function(c,i){
-    const sel=f.calendarId===c.id;
-    return '<button onclick="agScegliCal('+i+')" style="display:flex;align-items:center;gap:6px;border:'+(sel?'1.5px':'0.5px')+' solid '+(sel?c.colore:'#e0e0e0')+';background:'+(sel?c.colore+'1f':'#fff')+';border-radius:14px;padding:6px 12px;font-size:12px;cursor:pointer">'
-      +'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+c.colore+'"></span>'+agEsc(c.nome)+'</button>';
-  }).join('')+'</div>';
-
-  h+='<div class="section-title">Quando</div>';
-  h+=campoInput('Data',f.data,'agForm.data=this.value','date');
-  h+='<div class="summary-row"><span>Tutto il giorno</span><input type="checkbox" '+(f.tuttoIlGiorno?'checked':'')+' onchange="agForm.tuttoIlGiorno=this.checked;render()" style="width:18px;height:18px"/></div>';
-  if(!f.tuttoIlGiorno){
-    h+=campoInput('Dalle',f.oraInizio,'agForm.oraInizio=this.value','time');
-    h+=campoInput('Alle',f.oraFine,'agForm.oraFine=this.value','time');
-  }
-  h+=campoInput('Fino al giorno (se dura di piu)',f.dataFine,'agForm.dataFine=this.value','date');
-
-  h+='<div class="section-title" style="margin-top:14px">Cosa</div>';
-  h+=campoInput('Titolo',f.titolo,'agForm.titolo=this.value');
-  const recenti=agTitoliRecenti(f.calendarId);
-  if(recenti.length){
-    h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px">'+recenti.map(function(t,i){
-      return '<button onclick="agUsaTitolo('+i+')" style="border:0.5px solid #e0e0e0;background:#fafafa;border-radius:12px;padding:4px 10px;font-size:11px;color:#666;cursor:pointer">'+agEsc(t)+'</button>';
-    }).join('')+'</div>';
-  }
-  h+=campoInput('Luogo',f.luogo,'agForm.luogo=this.value');
-  h+='<div style="margin-top:10px"><div style="font-size:12px;color:#888;margin-bottom:4px">Note</div>'
-   +'<textarea id="ag-note" onchange="agForm.note=this.value" style="width:100%;min-height:70px;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'+agEsc(f.note)+'</textarea></div>';
-
-  h+='<div id="ag-form-status" style="font-size:12px;color:#888;margin:10px 0"></div>';
-  h+='<button class="btn-primary" id="btn-salva-agenda" onclick="agSalva()">'+(f.modo==='nuovo'?'Salva sul calendario':'Salva le modifiche')+'</button>';
-  if(f.modo==='modifica'){
-    h+='<button onclick="agElimina()" style="width:100%;margin-top:8px;background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:10px;font-size:13px;color:#A32D2D;cursor:pointer">Elimina dal calendario</button>';
-  }
-  return h+'</div>';
 }
 
 function agScegliCal(i){
@@ -2693,13 +2855,13 @@ function prossimiRighe(){
     const giornoIntero=!!e.start.date;
     const inizio=giornoIntero?new Date(String(e.start.date).slice(0,10)+'T00:00:00'):new Date(e.start.dateTime);
     if(isNaN(inizio)) return;
-    if(inizio>=f.da&&inizio<f.a) righe.push({quando:inizio,giornoIntero:giornoIntero,tipo:'',titolo:e.summary||'(senza titolo)',luogo:prossimiLuogo(e),tel:prossimiTelefoni(e.description),cal:e.__cal||''});
+    if(inizio>=f.da&&inizio<f.a) righe.push({quando:inizio,giornoIntero:giornoIntero,tipo:'',titolo:e.summary||'(senza titolo)',luogo:prossimiLuogo(e),tel:prossimiTelefoni(e.description),cal:e.__cal||'',calId:e.__calId||''});
     ['Consegna','Ritiro'].forEach(function(voce){
       const m=(e.description||'').match(new RegExp('^\\s*'+voce+'\\s*:\\s*(\\d{4}-\\d{2}-\\d{2})\\s+(\\d{1,2}[:.]\\d{2})','im'));
       if(!m) return;
       const q=new Date(m[1]+'T'+m[2].replace('.',':')+':00');
       if(isNaN(q)||q<f.da||q>=f.a) return;
-      righe.push({quando:q,giornoIntero:false,tipo:voce,titolo:voce+' - '+(e.summary||''),luogo:prossimiLuogo(e),tel:prossimiTelefoni(e.description),cal:e.__cal||''});
+      righe.push({quando:q,giornoIntero:false,tipo:voce,titolo:voce+' - '+(e.summary||''),luogo:prossimiLuogo(e),tel:prossimiTelefoni(e.description),cal:e.__cal||'',calId:e.__calId||''});
     });
   });
   righe.sort(function(a,b){
@@ -2727,7 +2889,7 @@ async function caricaProssimi(forza){
       const res=await fetch(url,{headers:{Authorization:'Bearer '+gToken}});
       const data=await res.json();
       if(data.error) continue;
-      (data.items||[]).forEach(function(e){ e.__cal=cal.summary||''; tutti.push(e); });
+      (data.items||[]).forEach(function(e){ e.__cal=cal.summary||''; e.__calId=cal.id; tutti.push(e); });
     }
     prossimiEventi=tutti;
     prossimiCaricatoAlle=Date.now();
@@ -2748,36 +2910,6 @@ function prossimiTelHtml(t){
   return '<a href="tel:'+t.tel+'" style="color:#A01020;text-decoration:none">&#9742; '+(t.nome||t.tel)+'</a>'
     + ' <a href="https://wa.me/'+wa+'" target="_blank" style="color:#888;text-decoration:none;font-size:11px">WhatsApp</a>';
 }
-function renderProssimi(){
-  if(!prossimiEventi.length){ try{const d=lsGet('pf_prossimi'); if(d) prossimiEventi=JSON.parse(d);}catch(e){} }
-  let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
-   + '<div style="flex:1;font-size:12px;color:#888">Oggi, domani e dopodomani: tutto quello che c\'e\' in calendario</div>'
-   + '<button onclick="caricaProssimi(true)" style="background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#888">Aggiorna</button></div>';
-  h+='<div id="prossimi-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>';
-  if(!gToken) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Connetti Google dalla tab Sync</div>';
-  const righe=prossimiRighe();
-  if(!righe.length) return h+'<div class="card" style="text-align:center;font-size:13px;color:#888">Nessun impegno nei prossimi tre giorni</div>';
-  let giornoCorrente='';
-  righe.forEach(function(r){
-    const g=r.quando.toDateString();
-    if(g!==giornoCorrente){
-      giornoCorrente=g;
-      h+='<div class="section-title" style="margin:14px 0 6px">'+prossimiEtichettaGiorno(r.quando)+'</div>';
-    }
-    const ora=r.giornoIntero?'tutto il giorno':(('0'+r.quando.getHours()).slice(-2)+':'+('0'+r.quando.getMinutes()).slice(-2));
-    h+='<div class="card" style="padding:10px 12px;margin-bottom:8px">';
-    h+='<div style="display:flex;gap:10px;align-items:baseline">';
-    h+='<b style="color:#A01020;font-size:12px;min-width:74px;display:inline-block">'+ora+'</b>';
-    h+='<div style="flex:1">';
-    h+='<div style="font-size:14px;font-weight:500;color:#1a1a1a">'+(r.tipo?'<span style="background:#fdeced;color:#A01020;border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px">'+r.tipo+'</span>':'')+(r.titolo||'')+'</div>';
-    if(r.luogo) h+='<div style="margin-top:4px"><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.luogo)+'" target="_blank" style="font-size:12px;color:#A01020;text-decoration:none">&#128205; '+r.luogo+'</a></div>';
-    if(r.tel&&r.tel.length){ h+='<div style="margin-top:4px;font-size:12px;display:flex;flex-wrap:wrap;gap:10px">'+r.tel.map(prossimiTelHtml).join('')+'</div>'; }
-    if(r.cal) h+='<div style="margin-top:4px;font-size:11px;color:#aaa">'+r.cal+'</div>';
-    h+='</div></div></div>';
-  });
-  return h;
-}
-
 // Conteggio dell'anno solare mostrato: 1 gennaio - 31 dicembre. Sta sotto ai mesi e
 // non cambia scorrendo i mesi; cambia solo passando a un altro anno.
 function riepilogoAnnoConcerti(anno){
