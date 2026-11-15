@@ -1418,6 +1418,99 @@ function cercaClienteContratto(q){
     +'</div>').join('');
 }
 
+/* ============ IL PIANOFORTE SCRITTO NELLE NOTE DEL CLIENTE ============
+   Nelle note dei contatti il pianoforte e' scritto come viene: "PIANOFORTE
+   YAMAHA U1A 4.356.515", "KAWAI<tab>HAT20 2194899", "U5AS SILENT MATRICOLA
+   5407792", "YAMAHA U3D + KIT SILENT GENIO MATRICOLA 910648", e la parola
+   matricola a volte non c'e' o e' storpiata (MATRCIOLA, MATRCOLA, Matrciola).
+   Prima si pretendeva la parola "Matricola" e si prendeva come marca la prima
+   parola della riga: su 155 clienti col pianoforte nelle note ne uscivano 122.
+   Adesso la marca si riconosce da un elenco - che si allarga da solo con le
+   marche dell'Excel - e il numero si cerca anche senza la parola. */
+const MARCHE_NOTE=['PEARL RIVER','YOUNG CHANG','WILH STEINBERG','B. STEINER','GRAND HAUS',
+  'YAMAHA','KAWAI','SAMICK','DIAPASON','SCHIMMEL','STEINWAY','BECHSTEIN','SEILER','ESSEX',
+  'BOSTON','PETROF','BOSENDORFER','RITMULLER','HOFFMANN','ZIMMERMANN','GAVEAU','PLEYEL',
+  'ERARD','BLUTHNER','FEURICH','GROTRIAN','SAUTER','IBACH','FAZIOLI','NORDISKA','WEINBACH',
+  'ROSLER','SCHOLZE','SIHEKO','STEINER','STEINBERG','KNIGHT','WEBER','HYUNDAI','BERGMANN',
+  'CHALLEN','KEMBLE','WALDSTEIN','EISENBERG','HAESSLER','BENTLEY','BRODMANN','KINGSBURG',
+  'CLAVINOVA','ROLAND','CASIO','GENERALMUSIC','TOKAI','ATLAS','FAZER','ANELLI'];
+
+// Le marche dell'Excel valgono quanto quelle scritte qui: cosi' l'elenco si
+// aggiorna da solo a ogni importazione, senza che nessuno lo ritocchi a mano.
+function marcheConosciute(){
+  const s=new Set(MARCHE_NOTE);
+  (typeof pianos!=='undefined'?pianos:[]).forEach(function(p){
+    const m=String(p.marca||'').trim().toUpperCase();
+    if(m.length>2) s.add(m);
+  });
+  return Array.from(s).sort(function(a,b){ return b.length-a.length; }); // prima quelle di due parole
+}
+
+// Una matricola e' un gruppo unico di lettere e cifre con almeno cinque cifre:
+// 1937493, J25161932, D3637787, 4.356.515 (i punti si buttano). Cosi' restano
+// fuori i modelli (U3H, B113, MC301) e gli importi del canone.
+function matricolaDaTesto(t){
+  const p=String(t||'').replace(/[.\s]/g,'');
+  if(!/^[A-Za-z0-9-]{5,14}$/.test(p)) return '';
+  return (p.match(/\d/g)||[]).length>=5 ? p.toUpperCase() : '';
+}
+
+function leggiPianoDaRiga(riga){
+  const t=String(riga).replace(/\s+/g,' ').trim();
+  if(!t) return null;
+  const su=t.toUpperCase();
+  let marca='', iMarca=-1;
+  const marche=marcheConosciute();
+  for(let k=0;k<marche.length;k++){
+    const i=su.indexOf(marche[k]);
+    if(i>=0 && (i===0 || /[^A-Z]/.test(su.charAt(i-1)))){ marca=marche[k]; iMarca=i+marche[k].length; break; }
+  }
+  const parlaDiPiano = marca || /pianoforte/i.test(t);
+  const kw=t.match(/\bmatr[a-z]*\b\.?\s*:?/i);
+  let matricola='', prima = iMarca>=0 ? t.slice(iMarca) : t;
+  if(kw){
+    // Detta la parola, il numero viene dopo: qui si e' piu' larghi (bastano due
+    // cifre) perche' a dirlo e' la nota stessa. Es. "Matricola I 0G07427".
+    const pezzi=t.slice(kw.index+kw[0].length).split(' ');
+    for(let i=0;i<pezzi.length;i++){
+      const p=pezzi[i].replace(/[.\s]/g,'');
+      if(/^[A-Za-z0-9-]{4,14}$/.test(p) && (p.match(/\d/g)||[]).length>=2){ matricola=p.toUpperCase(); break; }
+    }
+    prima = t.slice(iMarca>=0?iMarca:0, kw.index);
+  } else if(parlaDiPiano && !/\b(cell|tel|telefono|cellulare|iban|p\.?\s?iva|c\.f)\b/i.test(t)){
+    // Senza la parola si prende l'ultimo gruppo che somiglia a una matricola,
+    // ma solo su righe che parlano di pianoforti: su una riga di recapiti un
+    // numero di telefono finirebbe per sembrare una matricola.
+    const pezzi=t.split(' ');
+    for(let i=pezzi.length-1;i>=0;i--){
+      const v=matricolaDaTesto(pezzi[i]);
+      if(v){ matricola=v; prima=pezzi.slice(0,i).join(' '); if(iMarca>=0) prima=prima.slice(iMarca); break; }
+    }
+  }
+  if(!marca && !matricola) return null;
+  let modello=prima.split(/\+/)[0]
+    .replace(/^\s*(?:PIANOFORTE|PIANO)\b/i,'').replace(/\bMODELLO\b/i,'')
+    .replace(/\b(SILENT|ADSILENT|KORG|KYOSHI|GENIO|PREMIUM|KIT|ORIGINALE)\b/gi,'')
+    .replace(/[-–,:]/g,' ').replace(/\s+/g,' ').trim().toUpperCase();
+  let colore='';
+  const c=modello.match(/^(.*?)\s*\b(BIANCO|NERO)\b\s*$/);
+  if(c){ modello=c[1].trim(); colore=c[2]; }
+  return {marca:marca, modello:modello, matricola:matricola, colore:colore};
+}
+
+// Nelle note puo' esserci piu' di un pianoforte (uno cambiato, uno reso): vince
+// l'ultimo che porta una matricola, perche' e' quello buono adesso.
+function leggiPianoDaNote(notes){
+  const trovati=[];
+  String(notes||'').split('\n').forEach(function(l){
+    const r=leggiPianoDaRiga(l);
+    if(r) trovati.push(r);
+  });
+  if(!trovati.length) return {marca:'',modello:'',matricola:'',colore:''};
+  const conMatricola=trovati.filter(function(x){ return x.matricola; });
+  return conMatricola.length ? conMatricola[conMatricola.length-1] : trovati[trovati.length-1];
+}
+
 function selezionaClienteContratto(id){
   const c=contatti.find(x=>x.id===id);
   if(!c) return;
@@ -1425,7 +1518,8 @@ function selezionaClienteContratto(id){
 
   // Parse notes line by line
   const lines=notes.split('\n');
-  let cf='',marca='',modello='',matricola='',canone='',trasporto='',colore='',finitura='';
+  let cf='',canone='',trasporto='',colore='',finitura='';
+  const piano=leggiPianoDaNote(notes);
   const silentM=notes.toLowerCase().includes('silent');
   const emailM=notes.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
 
@@ -1434,20 +1528,6 @@ function selezionaClienteContratto(id){
     // CF: "C.F. XXXXXXXXXXXXXXXX"
     const cfMatch=l.match(/C\.F\.\s+([A-Z0-9]{6,16})/i);
     if(cfMatch) cf=cfMatch[1].toUpperCase();
-
-    // "Yamaha U3A Matricola 4272290"
-    // Riconosce marca/modello/matricola in modo flessibile: gestisce prefisso "PIANOFORTE",
-    // parola "modello" opzionale, qualsiasi parola extra tra marca e Matricola (SILENT, colori,
-    // kit...), matricole alfanumeriche. Se non trova marca/modello, recupera almeno la matricola.
-    const pianoMatch=l.match(/^(?:PIANOFORTE\s+)?(\S+)\s+(?:modello\s+)?(.*?)\s*-?\s*Matricola[:\s]+([A-Za-z0-9]+)/i);
-    if(pianoMatch){
-      marca=pianoMatch[1].toUpperCase();
-      modello=pianoMatch[2].replace(/\bSILENT\b/gi,'').replace(/\s+/g,' ').trim().toUpperCase();
-      matricola=pianoMatch[3].toUpperCase();
-    } else if(!matricola){
-      const matricolaFallback=l.match(/Matricola[:\s]+([A-Za-z0-9]+)/i);
-      if(matricolaFallback) matricola=matricolaFallback[1].toUpperCase();
-    }
 
     // "Canone Annuo € 660 + € 200 Trasporto"
     const canoneMatch=l.match(/Canone\s+Annuo[^\d]*(\d+)/i);
@@ -1469,8 +1549,8 @@ function selezionaClienteContratto(id){
     indirizzo:(c.indirizzo||'').replace(/\n/g,' ').replace(/\s+/g,' ').trim(),
     telefono:(c.telefono||'').replace(/^\+39\s*/,''),
     email:emailM?emailM[0]:'',
-    cf,marca,modello,matricola,
-    colore:colore||contrattoForm.colore,
+    cf,marca:piano.marca,modello:piano.modello,matricola:piano.matricola,
+    colore:colore||piano.colore||contrattoForm.colore,
     finitura:finitura||contrattoForm.finitura,
     canone,
     trasportoConsegna:trasporto,
