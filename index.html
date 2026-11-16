@@ -2921,9 +2921,9 @@ function riepilogoAnnoConcerti(anno){
     else if(/\bC7\b/.test(p)) c7++;
     else altri++;
   });
-  function chip(et,n){ return '<span style="background:#f5f5f5;border-radius:8px;padding:4px 9px;white-space:nowrap">'+et+' <b style="color:#A01020">'+n+'</b></span>'; }
-  return '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:#888;margin:0 0 12px">'
-    + '<span>Anno '+anno+'</span>'
+  function chip(et,n){ return '<span style="background:#f5f5f5;border-radius:10px;padding:7px 12px;white-space:nowrap">'+et+' <b style="color:#A01020;font-size:14px">'+n+'</b></span>'; }
+  return '<div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;font-size:13px;color:#888;margin:0 0 14px">'
+    + '<span style="font-weight:600">Anno '+anno+'</span>'
     + chip('C3',c3) + chip('C7',c7) + chip('Altri',altri) + chip('Totale',dellAnno.length)
     + '</div>';
 }
@@ -2933,110 +2933,166 @@ function riepilogoAnnoConcerti(anno){
 // (Fattura, Cash, Gratis, Sponsorizzazione): cambia solo come si mostra. Un
 // concerto senza pagamento indicato ha la sua targhetta grigia, perche' e'
 // proprio quello che resta da sistemare.
-const LOGO_P_MINI='<svg viewBox="96 78 64 60" width="15" height="14" style="vertical-align:-2px"><path fill="#c03" d="M126.94,136.09H97.65v-2.83h8.49L122.9,88.42s1.42-4.92-2.35-3.71-11.45,15.36-11.45,15.36l-1.84-.11s5.72-9.88,8.44-13.63c7.41-10.24,13.47-5,14,.67,14.85-13.74,27.94-3.55,24.14,11-3.71,14.28-22.38,26.26-28.11,13.73l-.74,1.48-6.33,20.21H127Zm3.5-39.71c-3.44,8.71-3.69,15.09-.56,16.33s8.47-3.13,11.91-11.84,3.7-15.09.57-16.33S133.89,87.67,130.44,96.38Z"/></svg>';
-function chipPagamento(metodo){
-  const st='background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400';
-  const v=String(metodo||'').trim();
-  const k=v.toLowerCase();
-  if(!v) return '<button title="Pagamento non indicato" style="'+st+';color:#b0b0b0">? pagamento</button>';
-  let icona, testo;
-  if(k.indexOf('cash')===0||k.indexOf('contant')===0){ icona='💵'; testo='Contanti'; }
-  else if(k.indexOf('fattura')===0){ icona='📝'; testo='Fattura'; }
-  else if(k.indexOf('sponsor')===0){ icona=LOGO_P_MINI; testo='Sponsor'; }
-  else if(k.indexOf('gratis')===0){ icona='<span style="color:#d32f2f;font-weight:700">✚</span>'; testo='Gratis'; }
-  else { icona='€'; testo=v.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-  return '<button title="Pagamento: '+v.replace(/"/g,'&quot;').replace(/</g,'&lt;')+'" style="'+st+'">'+icona+' '+testo+'</button>';
+const LOGO_P_MINI='<svg viewBox="96 78 64 60" width="16" height="15" style="vertical-align:-3px"><path fill="#c03" d="M126.94,136.09H97.65v-2.83h8.49L122.9,88.42s1.42-4.92-2.35-3.71-11.45,15.36-11.45,15.36l-1.84-.11s5.72-9.88,8.44-13.63c7.41-10.24,13.47-5,14,.67,14.85-13.74,27.94-3.55,24.14,11-3.71,14.28-22.38,26.26-28.11,13.73l-.74,1.48-6.33,20.21H127Zm3.5-39.71c-3.44,8.71-3.69,15.09-.56,16.33s8.47-3.13,11.91-11.84,3.7-15.09.57-16.33S133.89,87.67,130.44,96.38Z"/></svg>';
+const PAGAMENTI_CONCERTO=[
+  {valore:'Fattura',            icona:'&#128221;', testo:'Fattura'},
+  {valore:'Cash',               icona:'&#128181;', testo:'Contanti'},
+  {valore:'Sponsorizzazione',   icona:LOGO_P_MINI, testo:'Sponsor'},
+  {valore:'Gratis',             icona:'<span style="color:#d32f2f;font-weight:700">&#10010;</span>', testo:'Gratis'}
+];
+function pagamentoConcerto(metodo){
+  const v=String(metodo||'').trim(), k=v.toLowerCase();
+  for(let i=0;i<PAGAMENTI_CONCERTO.length;i++){
+    const p=PAGAMENTI_CONCERTO[i];
+    if(k===p.valore.toLowerCase()) return p;
+    if(p.valore==='Cash'&&k.indexOf('contant')===0) return p;
+  }
+  return v?{valore:v,icona:'&euro;',testo:v}:null;
 }
+function chipPagamento(metodo){
+  const p=pagamentoConcerto(metodo);
+  if(!p) return '<span class="gr-chip" style="cursor:default;color:#b0b0b0" title="Pagamento non indicato">? pagamento</span>';
+  return '<span class="gr-chip" style="cursor:default" title="Pagamento: '+agEsc(p.valore)+'">'+p.icona+' <span class="et">'+agEsc(p.testo)+'</span></span>';
+}
+
+/* ---------------- L'elenco dei concerti del mese ---------------- */
+
+// Rosso quello passato, arancio quello entro la settimana, verde il resto: sono
+// gli stessi colori delle scadenze, cosi' non c'e' un secondo codice da imparare.
+function concertoColore(gg){ return gg<0?'#E24B4A':(gg<=7?'#EF9F27':'#639922'); }
 
 function renderConcerti(){
   try{const d=lsGet('pf_concerti');if(d&&!concerti.length)concerti=JSON.parse(d);}catch(e){}
   if(showFormConcerto) return renderFormConcerto();
-  const mc=concerti.filter(c=>{if(!c.data)return false;const d=new Date(c.data);return d.getMonth()===concertiMonth&&d.getFullYear()===concertiYear;});
-  let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">';
-  h+='<div class="month-nav" style="margin:0;flex:1"><button onclick="prevMonthConcerti()">‹ '+MONTHS_SHORT[(concertiMonth+11)%12]+'</button><span>'+MONTHS[concertiMonth]+' '+concertiYear+'</span><button onclick="nextMonthConcerti()">'+MONTHS_SHORT[(concertiMonth+1)%12]+' ›</button></div>';
-  h+='<button onclick="editingConcertoId=null;concertoForm=concertoVuoto();showFormConcerto=true;render()" class="btn-primary" style="width:auto;padding:8px 14px;font-size:12px">+ Nuovo</button></div>';
+  const mc=concerti.filter(function(c){ if(!c.data) return false; const d=new Date(c.data); return d.getMonth()===concertiMonth&&d.getFullYear()===concertiYear; });
+
+  let h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+   +'<button class="gr-chip" onclick="prevMonthConcerti()" style="padding:12px 14px;font-weight:600">&lsaquo; '+MONTHS_SHORT[(concertiMonth+11)%12]+'</button>'
+   +'<div style="flex:1;text-align:center;font-size:17px;font-weight:700">'+MONTHS[concertiMonth]+' '+concertiYear+'</div>'
+   +'<button class="gr-chip" onclick="nextMonthConcerti()" style="padding:12px 14px;font-weight:600">'+MONTHS_SHORT[(concertiMonth+1)%12]+' &rsaquo;</button></div>';
   h+=riepilogoAnnoConcerti(concertiYear);
-  h+='<div id="concerti-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>';
-  if(gToken) h+='<button onclick="syncConcerti()" style="background:none;border:0.5px solid #e0e0e0;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;color:#888;margin-bottom:12px;width:100%">↻ Aggiorna da Google Calendar</button>';
-  else h+='<div class="card" style="text-align:center"><div style="font-size:13px;color:#888;margin-bottom:12px">Connetti Google dalla tab Sync</div></div>';
-  if(!mc.length){h+='<div class="empty-state">Nessun concerto in '+MONTHS[concertiMonth]+'</div>';return h;}
-  mc.sort((a,b)=>new Date(a.data)-new Date(b.data)).forEach(c=>{
+  h+='<button class="gr-tasto" onclick="editingConcertoId=null;concertoForm=concertoVuoto();showFormConcerto=true;render()">&#43;&nbsp;&nbsp;Nuovo concerto<span class="fr">&rsaquo;</span></button>';
+  h+='<div id="concerti-status" style="font-size:12.5px;color:#888;margin-bottom:8px"></div>';
+  if(gToken) h+='<button class="gr-chiaro" onclick="syncConcerti()">&#8635; Aggiorna da Google Calendar</button>';
+  else h+='<div class="gr-vuoto">Connetti Google dalla tab Sync</div>';
+  if(!mc.length) return h+'<div class="gr-vuoto">Nessun concerto in '+MONTHS[concertiMonth]+'</div>';
+
+  mc.sort(function(a,b){ return new Date(a.data)-new Date(b.data); }).forEach(function(c){
     const d=new Date(c.data);
-    const gg=Math.round((d-new Date().setHours(0,0,0,0))/(1000*60*60*24));
-    const bc=gg<0?'badge-red':gg<=7?'badge-orange':'badge-green';
-    const bt=gg<0?Math.abs(gg)+'gg fa':gg===0?'Oggi':gg===1?'Domani':'fra '+gg+'gg';
-    h+='<div class="card" style="margin-bottom:10px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div style="font-weight:500;font-size:14px">'+c.titolo+'</div><span class="badge '+bc+'">'+bt+'</span></div>';
-    if(c.luogo) h+='<div style="font-size:12px;color:#888;margin-bottom:4px">📍 '+c.luogo+'</div>';
-    h+='<div style="font-size:12px;color:#888;margin-bottom:8px">'+d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})+'</div>';
-    const rows=[];
-    if(c.pianoforte) rows.push(['Pianoforte',c.pianoforte]);
-    if(c.compenso) rows.push(['Compenso','€ '+c.compenso]);
-    if(c.dataConsegna) rows.push(['Consegna',c.dataConsegna+(c.oraConsegna?' ore '+c.oraConsegna:'')]);
-    if(c.dataRitiro) rows.push(['Ritiro',c.dataRitiro+(c.oraRitiro?' ore '+c.oraRitiro:'')]);
-    if(rows.length){h+='<div style="border-top:0.5px solid #f0f0f0;padding-top:8px">';rows.forEach(([l,v])=>{h+='<div class="summary-row"><span>'+l+'</span><span style="font-weight:500">'+v+'</span></div>';});h+='</div>';}
-    h+='<div style="margin-top:10px;border-top:0.5px solid #f0f0f0;padding-top:10px;display:flex;gap:6px;flex-wrap:wrap">';
-    h+='<button onclick="modificaConcerto(\''+c.id+'\')" style="background:none;border:0.5px solid #A01020;color:#A01020;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">✎ Modifica</button>';
-    h+='<button style="background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400">📍 '+(c.luogo||'—')+'</button>';
-    h+='<button style="background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400">🎹 '+(c.pianoforte||'—')+'</button>';
-    h+='<button style="background:#f5f5f5;border:0.5px solid #e0e0e0;color:#555;padding:6px 12px;border-radius:6px;font-size:12px;cursor:default;font-weight:400">€ '+(c.compenso||'—')+'</button>';
-    h+=chipPagamento(c.metodoPagamento);
-    h+='</div>';
-    h+='</div>';
+    const gg=Math.round((d-new Date().setHours(0,0,0,0))/86400000);
+    const col=concertoColore(gg);
+    const quando=gg<0?Math.abs(gg)+'gg fa':(gg===0?'Oggi':(gg===1?'Domani':'fra '+gg+'gg'));
+    h+='<div class="gr-ev">'+grFascia(col,d.getDate(),GR_MESI[d.getMonth()])+'<div class="gr-corpo">';
+    h+='<div style="display:flex;align-items:flex-start;gap:8px">'
+      +'<div class="gr-tit" style="flex:1">'+agEsc(c.titolo)+'</div>'
+      +'<span style="background:'+col+'1f;color:'+col+';border-radius:9px;padding:4px 9px;font-size:11.5px;font-weight:700;white-space:nowrap">'+quando+'</span></div>';
+    const esteso=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+    h+='<div style="font-size:12.5px;color:#999">'+esteso.charAt(0).toUpperCase()+esteso.slice(1)+'</div>';
+
+    const az=[];
+    if(c.luogo) az.push('<a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.luogo)+'" target="_blank" rel="noopener"><span>&#128205;</span><span class="et">'+agEsc(c.luogo)+'</span></a>');
+    [1,2,3].forEach(function(n){
+      const nome=c['contatto'+n+'nome'], tel=c['contatto'+n+'tel'];
+      if(tel) az.push('<a href="tel:'+agEsc(tel)+'"><span>&#9742;</span><span class="et">'+agEsc(nome||tel)+'</span></a>');
+    });
+    if(az.length) h+='<div class="gr-az">'+az.join('')+'</div>';
+
+    h+='<div class="gr-az">'
+      +'<span class="gr-chip" style="cursor:default">&#127929; <span class="et">'+(c.pianoforte?agEsc(c.pianoforte):'&mdash;')+'</span></span>'
+      +'<span class="gr-chip" style="cursor:default">&euro; <span class="et">'+(c.compenso?agEsc(c.compenso):'&mdash;')+'</span></span>'
+      +chipPagamento(c.metodoPagamento)+'</div>';
+
+    if(c.dataConsegna||c.dataRitiro){
+      h+='<div class="gr-az">'
+        +(c.dataConsegna?'<span class="gr-chip" style="cursor:default">&#128666; <span class="et">Consegna '+agEsc(c.dataConsegna)+(c.oraConsegna?' ore '+agEsc(c.oraConsegna):'')+'</span></span>':'')
+        +(c.dataRitiro?'<span class="gr-chip" style="cursor:default">&#8617; <span class="et">Ritiro '+agEsc(c.dataRitiro)+(c.oraRitiro?' ore '+agEsc(c.oraRitiro):'')+'</span></span>':'')
+        +'</div>';
+    }
+
+    h+='<button class="gr-chiaro" style="margin:2px 0 0;border-color:#A01020;color:#A01020" onclick="modificaConcerto(\''+c.id+'\')">&#9998; Modifica</button>';
+    h+='</div></div>';
   });
   return h;
 }
 
+/* ---------------- Il modulo del concerto ---------------- */
+
+const TIPI_EVENTO=['concerto','saggio','recital','masterclass'];
+
 function renderFormConcerto(){
   const f=concertoForm;
-  let h='<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button onclick="showFormConcerto=false;editingConcertoId=null;concertoForm=concertoVuoto();render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:20px">←</button><div style="font-size:15px;font-weight:500">'+(editingConcertoId?'Modifica evento':'Nuovo evento')+'</div></div>';
+  let h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
+   +'<button onclick="showFormConcerto=false;editingConcertoId=null;concertoForm=concertoVuoto();render()" style="background:none;border:none;cursor:pointer;color:#888;font-size:22px;padding:0">&larr;</button>'
+   +'<div style="font-size:18px;font-weight:700">'+(editingConcertoId?'Modifica evento':'Nuovo evento')+'</div></div>';
 
-  h+='<div class="section-title">Evento</div>';
-  if(!editingConcertoId) h+='<div class="summary-row"><span>Tipo evento</span><select onchange="concertoForm.tipo=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px"><option value="concerto">Concerto</option><option value="saggio">Saggio</option><option value="recital">Recital</option><option value="masterclass">Masterclass</option></select></div>';
-  if(editingConcertoId){
-    if(f.calNome) h+='<div class="summary-row"><span>Calendario</span><span style="font-weight:500">'+f.calNome+'</span></div>';
-    if(f.altreRighe&&f.altreRighe.length) h+='<div style="background:#f7f7f7;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:12px;color:#666;white-space:pre-line"><div style="font-size:11px;color:#999;margin-bottom:4px">Scritto a mano su Google &mdash; resta com&rsquo;&egrave;</div>'+f.altreRighe.join('\n').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>';
+  if(!editingConcertoId){
+    h+='<div class="gr-campo"><label>Che evento e&rsquo;</label><div class="gr-chips" style="margin:0">'+TIPI_EVENTO.map(function(t){
+      const sel=f.tipo===t;
+      return '<button class="gr-chip" onclick="concertoForm.tipo=\''+t+'\';render()" style="text-transform:capitalize'+(sel?';border-color:#A01020;background:#A01020;color:#fff;font-weight:700':'')+'">'+t+'</button>';
+    }).join('')+'</div></div>';
+  } else {
+    if(f.calNome) h+='<div class="gr-campo"><label>Calendario</label><div class="gr-chip" style="cursor:default;display:flex"><span class="et">'+agEsc(f.calNome)+'</span></div></div>';
+    if(f.altreRighe&&f.altreRighe.length){
+      h+='<div style="background:#f7f7f7;border-radius:13px;padding:12px;margin-bottom:12px;font-size:13px;color:#666;white-space:pre-line">'
+        +'<div style="font-size:11.5px;color:#999;margin-bottom:5px">Scritto a mano su Google &mdash; resta com&rsquo;&egrave;</div>'
+        +agEsc(f.altreRighe.join('\n'))+'</div>';
+    }
   }
-  h+=campoInput('Titolo',f.titolo,'concertoForm.titolo=this.value');
-  h+=campoInput('Data',f.data,'concertoForm.data=this.value','date');
-  h+=campoInput('Luogo',f.luogo,'concertoForm.luogo=this.value');
-  h+=campoInput('Location (Nome)',f.location,'concertoForm.location=this.value');
-  h+=campoInput('Indirizzo Location',f.indirizzo,'concertoForm.indirizzo=this.value');
 
-  h+='<div class="section-title" style="margin-top:14px">Pianoforte</div>';
-  h+='<div class="summary-row"><span>Tipo pianoforte</span><select onchange="concertoForm.pianoforte=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px"><option value=""'+(f.pianoforte?'':' selected')+'>&mdash;</option>'+(f.pianoforte&&TIPI_PIANO.indexOf(f.pianoforte)<0?'<option value="'+f.pianoforte.replace(/"/g,'&quot;')+'" selected>'+f.pianoforte+'</option>':'')+TIPI_PIANO.map(t=>'<option value="'+t+'" '+(f.pianoforte===t?'selected':'')+'>'+t+'</option>').join('')+'</select></div>';
-  h+=campoInput('Compenso (IVA Esclusa)',f.compenso,'concertoForm.compenso=this.value','number');
-  h+='<div class="summary-row"><span>Metodo pagamento</span><select onchange="concertoForm.metodoPagamento=this.value" style="border:0.5px solid #e0e0e0;border-radius:6px;padding:4px 8px;font-size:13px"><option value=""'+(f.metodoPagamento?'':' selected')+'>&mdash;</option>'+(f.metodoPagamento&&['Fattura','Cash','Gratis','Sponsorizzazione'].indexOf(f.metodoPagamento)<0?'<option value="'+f.metodoPagamento.replace(/"/g,'&quot;')+'" selected>'+f.metodoPagamento+'</option>':'')+'<option value="Fattura" '+(f.metodoPagamento==="Fattura"?'selected':'')+'>Fattura</option><option value="Cash" '+(f.metodoPagamento==="Cash"?'selected':'')+'>Contanti (cash)</option><option value="Gratis" '+(f.metodoPagamento==="Gratis"?'selected':'')+'>Gratis</option><option value="Sponsorizzazione" '+(f.metodoPagamento==="Sponsorizzazione"?'selected':'')+'>Sponsorizzazione</option></select></div>';
+  h+=grCampo('Titolo',f.titolo,'concertoForm.titolo=this.value','text','co-titolo');
+  h+=grCampo('Data',f.data,'concertoForm.data=this.value','date','co-data');
+  h+=grCampo('Luogo',f.luogo,'concertoForm.luogo=this.value','text','co-luogo');
+  h+=grCampo('Location (nome)',f.location,'concertoForm.location=this.value','text','co-location');
+  h+=grCampo('Indirizzo della location',f.indirizzo,'concertoForm.indirizzo=this.value','text','co-indirizzo');
 
-  h+='<div class="section-title" style="margin-top:14px">Logistica</div>';
-  h+=campoInput('Data Consegna',f.dataConsegna,'concertoForm.dataConsegna=this.value','date');
-  h+=campoInput('Ora Consegna',f.oraConsegna,'concertoForm.oraConsegna=this.value','time');
-  h+=campoInput('Data Ritiro',f.dataRitiro,'concertoForm.dataRitiro=this.value','date');
-  h+=campoInput('Ora Ritiro',f.oraRitiro,'concertoForm.oraRitiro=this.value','time');
+  h+='<div class="gr-campo"><label>Quale pianoforte</label><div class="gr-chips" style="margin:0">'
+   +'<button class="gr-chip" onclick="concertoForm.pianoforte=\'\';render()"'+(f.pianoforte?'':' style="border-color:#A01020;background:#A01020;color:#fff;font-weight:700"')+'>&mdash;</button>'
+   +TIPI_PIANO.map(function(t){
+      const sel=f.pianoforte===t;
+      return '<button class="gr-chip" onclick="concertoForm.pianoforte=\''+t+'\';render()"'+(sel?' style="border-color:#A01020;background:#A01020;color:#fff;font-weight:700"':'')+'>'+t+'</button>';
+    }).join('')
+   +(f.pianoforte&&TIPI_PIANO.indexOf(f.pianoforte)<0?'<button class="gr-chip" style="border-color:#A01020;background:#A01020;color:#fff;font-weight:700">'+agEsc(f.pianoforte)+'</button>':'')
+   +'</div></div>';
 
-  h+='<div class="section-title" style="margin-top:14px">Contatti Telefonici</div>';
-function renderReferenteRow(n,nome,tel){
-    return '<div style="margin-bottom:8px">'
-      +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">'
-      +'<input type="text" placeholder="Nome '+n+'" value="'+(nome||'')+'" onchange="concertoForm.contatto'+n+'nome=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/>'
-      +'<input type="tel" placeholder="Telefono" value="'+(tel||'')+'" onchange="concertoForm.contatto'+n+'tel=this.value" style="flex:1;border:none;border-bottom:0.5px solid #e0e0e0;font-size:13px;padding:4px;outline:none"/>'
+  h+=grCampo('Compenso (IVA esclusa)',f.compenso,'concertoForm.compenso=this.value','number','co-compenso');
+
+  h+='<div class="gr-campo"><label>Come viene pagato</label><div class="gr-chips" style="margin:0">'
+   +'<button class="gr-chip" onclick="concertoForm.metodoPagamento=\'\';render()"'+(f.metodoPagamento?'':' style="border-color:#A01020;background:#A01020;color:#fff;font-weight:700"')+'>&mdash;</button>'
+   +PAGAMENTI_CONCERTO.map(function(p){
+      const sel=String(f.metodoPagamento||'').toLowerCase()===p.valore.toLowerCase();
+      return '<button class="gr-chip" onclick="concertoForm.metodoPagamento=\''+p.valore+'\';render()"'+(sel?' style="border-color:#A01020;background:#A01020;color:#fff;font-weight:700"':'')+'>'+p.icona+' '+p.testo+'</button>';
+    }).join('')
+   +(f.metodoPagamento&&!PAGAMENTI_CONCERTO.some(function(p){return p.valore.toLowerCase()===String(f.metodoPagamento).toLowerCase();})
+      ?'<button class="gr-chip" style="border-color:#A01020;background:#A01020;color:#fff;font-weight:700">&euro; '+agEsc(f.metodoPagamento)+'</button>':'')
+   +'</div></div>';
+
+  // Data, consegna e ritiro: stessa casella e stessa misura, una per riga.
+  // Prima la data prendeva tutta la riga e consegna e ritiro stavano stretti in
+  // due mezze caselle appaiate, dove si sbaglia a toccare.
+  h+=grCampo('Giorno di consegna',f.dataConsegna,'concertoForm.dataConsegna=this.value','date','co-dcons');
+  h+=grCampo('Ora di consegna',f.oraConsegna,'concertoForm.oraConsegna=this.value','time','co-ocons');
+  h+=grCampo('Giorno di ritiro',f.dataRitiro,'concertoForm.dataRitiro=this.value','date','co-drit');
+  h+=grCampo('Ora di ritiro',f.oraRitiro,'concertoForm.oraRitiro=this.value','time','co-orit');
+
+  h+='<div class="gr-campo" style="margin-bottom:4px"><label>Chi chiamare sul posto</label></div>';
+  function rigaReferente(n,nome,tel){
+    return '<div style="margin-bottom:12px;display:flex;flex-direction:column;gap:8px">'
+      +'<div class="gr-griglia">'
+      +'<input id="co-ref'+n+'nome" type="text" placeholder="Nome '+n+'" value="'+agEsc(nome||'')+'" onchange="concertoForm.contatto'+n+'nome=this.value" style="font-family:inherit;font-size:16px;border:0.5px solid #e0e0e0;border-radius:13px;padding:14px;width:100%;box-sizing:border-box;outline:none">'
+      +'<input id="co-ref'+n+'tel" type="tel" placeholder="Telefono" value="'+agEsc(tel||'')+'" onchange="concertoForm.contatto'+n+'tel=this.value" style="font-family:inherit;font-size:16px;border:0.5px solid #e0e0e0;border-radius:13px;padding:14px;width:100%;box-sizing:border-box;outline:none">'
       +'</div>'
-      +'<input type="text" id="refsearch'+n+'" placeholder="Cerca in rubrica..." oninput="cercaReferente('+n+',this.value)" onfocus="if(!rubricaCompleta.length)caricaRubricaCompleta()" style="width:100%;border:0.5px solid #e0e0e0;border-radius:6px;font-size:11px;padding:5px 8px;outline:none;color:#888;box-sizing:border-box"/>'
-      +'<div id="refresults'+n+'"></div>'
-      +'</div>';
+      +'<input type="text" id="refsearch'+n+'" placeholder="Cerca nella rubrica..." oninput="cercaReferente('+n+',this.value)" onfocus="if(!rubricaCompleta.length)caricaRubricaCompleta()" style="font-family:inherit;font-size:14px;color:#777;border:0.5px solid #e0e0e0;border-radius:13px;padding:12px;width:100%;box-sizing:border-box;outline:none">'
+      +'<div id="refresults'+n+'"></div></div>';
   }
-  function selezionaReferente(n,nome,tel){
-    concertoForm['contatto'+n+'nome']=nome;
-    concertoForm['contatto'+n+'tel']=tel;
-    render();
-  }
-  h+=renderReferenteRow(1,f.contatto1nome,f.contatto1tel);
-  h+=renderReferenteRow(2,f.contatto2nome,f.contatto2tel);
-  h+=renderReferenteRow(3,f.contatto3nome,f.contatto3tel);
-  h+='<div class="section-title">Note</div>';
-  h+='<textarea onchange="concertoForm.note=this.value" placeholder="Note..." style="width:100%;height:80px;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-bottom:14px">'+f.note+'</textarea>';
+  h+=rigaReferente(1,f.contatto1nome,f.contatto1tel);
+  h+=rigaReferente(2,f.contatto2nome,f.contatto2tel);
+  h+=rigaReferente(3,f.contatto3nome,f.contatto3tel);
 
-  h+=(editingConcertoId?'<button class="btn-primary" id="btn-salva-concerto" onclick="aggiornaEventoCalendar()">Salva Modifiche</button>':'<button class="btn-primary" id="btn-salva-concerto" onclick="salvaEventoCalendar()">Salva sul Calendario</button>')+'</div>';
+  h+='<div class="gr-campo"><label for="co-note">Note</label>'
+   +'<textarea id="co-note" onchange="concertoForm.note=this.value" placeholder="Note...">'+agEsc(f.note||'')+'</textarea></div>';
+
+  h+='<button class="gr-tasto" id="btn-salva-concerto" style="justify-content:center" onclick="'+(editingConcertoId?'aggiornaEventoCalendar()':'salvaEventoCalendar()')+'">'
+   +(editingConcertoId?'Salva le modifiche':'Salva sul calendario')+'</button>';
   return h;
 }
 
