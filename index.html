@@ -142,6 +142,29 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .gr-testa .conta{background:#A01020;color:#fff;border-radius:11px;font-size:11.5px;font-weight:700;padding:2px 9px}
 .gr-piu{border:1px solid #e0e0e0;background:#fff;color:#A01020;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;padding:9px 13px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.gr-leva,.gr-leva i{transition:none}}
+.pz-msg{font-size:12.5px;color:#7a4a00;background:#FAEEDA;border-radius:8px;padding:9px 11px;margin-top:10px;line-height:1.45}
+.pz-sub{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px}
+.pz-mio,.pz-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;cursor:pointer}
+.pz-mio{padding:9px 0;border-bottom:.5px solid #eee}.pz-mio:last-child{border-bottom:0;padding-bottom:0}
+.pz-mio b,.pz-top b{font-size:15px}.pz-mio i,.pz-top i{display:block;font-style:normal;font-size:11.5px;color:#888;margin-top:2px}
+.pz-dx{text-align:right;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.pz-dx b{font-size:17px;font-variant-numeric:tabular-nums}
+.pz-nd{font-size:10.5px;color:#999}
+.pz-tu{font-size:12.5px;background:#fdeced;color:#7a0c18;border-radius:8px;padding:6px 10px;margin-top:10px}
+.pz-fonti{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.pz-fr{background:#f5f5f5;border-radius:8px;padding:7px 8px;min-width:0}
+.pz-fr span{display:block;font-size:10.5px;color:#888}.pz-fr b{display:block;font-size:14.5px;font-variant-numeric:tabular-nums}
+.pz-fr i{display:block;font-style:normal;font-size:10px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pz-piu{font-size:12.5px;color:#A01020;text-align:center;padding-top:10px;cursor:pointer}
+.pz-an{display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid #eee;text-decoration:none;color:#1a1a1a;align-items:flex-start}
+.pz-an:last-child{border-bottom:0}.pz-an b{min-width:54px;text-align:right;font-variant-numeric:tabular-nums;font-size:14px}
+.pz-an span{font-size:12px;color:#555;min-width:0;flex:1}.pz-an em{display:block;font-style:normal;font-size:11px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pz-an.off{opacity:.5}
+.pz-chips{display:flex;gap:8px;margin:4px 0 10px}
+.pz-chips button{flex:1;padding:9px;border-radius:8px;border:.5px solid #e0e0e0;background:#fff;font-size:13px;color:#666;cursor:pointer}
+.pz-chips button.on{background:#A01020;color:#fff;border-color:#A01020}
+.pz-cerca{width:100%;padding:10px 12px;border:.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:12px;background:#fff}
+.pz-mod{scroll-margin-top:64px}
 </style>
 </head>
 <body>
@@ -190,6 +213,10 @@ Agenda
     <button onclick="showTab('dipendenti')" id="tab-dipendenti">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Dipendenti
+    </button>
+    <button onclick="showTab('prezzi')" id="tab-prezzi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Prezzi
     </button>
   </nav>
   <div style="padding:10px 12px 6px;text-align:center"><div style="display:inline-block;width:55%;max-width:240px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 265.53 155.95"><defs><style>.cls-1{fill:#1d1d1b;}.cls-2{fill:transparent;}.cls-3{fill:#c03;}</style></defs><title>logo_playpiano1</title><g id="Livello_2" data-name="Livello 2"><g id="Livello_1-2" data-name="Livello 1"><path class="cls-1" d="M47.66,145.57h3.21a4.2,4.2,0,0,1,2.74.77,2.84,2.84,0,0,1,.92,2.31,2.25,2.25,0,0,1-.92,2,4.69,4.69,0,0,1-2.74.66H49.48v4.55H47.66Zm4.6,4.69a2.49,2.49,0,0,0,.46-1.61,3.3,3.3,0,0,0-.48-2,1.59,1.59,0,0,0-1.4-.67H49.48v4.79H50.9A1.7,1.7,0,0,0,52.26,150.26Z"/><path class="cls-1" d="M65,145.57h1.83v10.25H65Z"/><path class="cls-1" d="M86.88,155.82h-2l0-.16-.1-.26,0-.06-1.14-3.07.1.27H79.07l.17-.45-1.34,3.6-.06.13h-.63s0-.07,0-.07l.05-.15.06-.16,0-.1,3.6-9.55.08-.22h2l3.66,9.77,0,.08a1,1,0,0,0,0,.14l.07.19S86.88,155.78,86.88,155.82Zm-3.34-3.73-2.14-5.8-2.16,5.8Z"/><path class="cls-1" d="M104,145.57v10.25h-2.24l-3.91-8.91v8.91h-.59V145.57h2l4.12,9.38v-9.38Z"/><path class="cls-1" d="M115.37,148a4.72,4.72,0,0,1,1.73-1.89,4.5,4.5,0,0,1,2.45-.68,4.56,4.56,0,0,1,2.46.68,4.79,4.79,0,0,1,1.73,1.89,5.78,5.78,0,0,1,.62,2.68,6,6,0,0,1-.6,2.74,4.39,4.39,0,0,1-1.69,1.85,5.12,5.12,0,0,1-5,0,4.42,4.42,0,0,1-1.7-1.85,6,6,0,0,1-.6-2.74A5.67,5.67,0,0,1,115.37,148Zm1.68,5.17a3.82,3.82,0,0,0,1,1.68,2.17,2.17,0,0,0,1.5.6,2.13,2.13,0,0,0,1.5-.6,3.73,3.73,0,0,0,1-1.68,7.91,7.91,0,0,0,.36-2.49,7.48,7.48,0,0,0-.38-2.44,4.19,4.19,0,0,0-1-1.71,2,2,0,0,0-1.46-.63,2,2,0,0,0-1.45.63,4.1,4.1,0,0,0-1,1.71,7.48,7.48,0,0,0-.38,2.44A7.91,7.91,0,0,0,117.05,153.19Z"/><path class="cls-1" d="M136.89,155.82h-1.81V145.57h6.74v.48h-4.93v4h4.52v.46h-4.52Z"/><path class="cls-1" d="M152.4,148a4.79,4.79,0,0,1,1.73-1.89,4.77,4.77,0,0,1,4.91,0,4.79,4.79,0,0,1,1.73,1.89,5.67,5.67,0,0,1,.63,2.68,6,6,0,0,1-.6,2.74,4.42,4.42,0,0,1-1.7,1.85,5.12,5.12,0,0,1-5,0,4.39,4.39,0,0,1-1.69-1.85,5.85,5.85,0,0,1-.61-2.74A5.67,5.67,0,0,1,152.4,148Zm1.68,5.17a3.83,3.83,0,0,0,1,1.68,2.16,2.16,0,0,0,3,0,3.74,3.74,0,0,0,1-1.68,7.93,7.93,0,0,0,.35-2.49,7.49,7.49,0,0,0-.37-2.44,4.1,4.1,0,0,0-1-1.71,2,2,0,0,0-2.91,0,4.19,4.19,0,0,0-1,1.71,7.22,7.22,0,0,0-.38,2.44A8.23,8.23,0,0,0,154.08,153.19Z"/><path class="cls-1" d="M172.11,145.57h3.21a4.2,4.2,0,0,1,2.74.77,2.84,2.84,0,0,1,.93,2.31,2,2,0,0,1-1.49,2,4.88,4.88,0,0,1-1,.23l2.88,4.92h-2.09L174.68,151h-.75v4.84h-1.82Zm3.23,5a1.8,1.8,0,0,0,1.36-.48,1.92,1.92,0,0,0,.47-1.4,3.38,3.38,0,0,0-.47-2,1.6,1.6,0,0,0-1.41-.67h-1.36v4.5Z"/><path class="cls-1" d="M191.41,146.05h-3v-.48h7.87v.48h-3v9.77h-1.81Z"/><path class="cls-1" d="M206.35,145.57h1.84v10.25h-1.84Z"/><path class="cls-2" d="M138.11,63a1,1,0,0,0,1,1h7.6a1,1,0,0,0,1-1V.59h-9.62Z"/><path class="cls-3" d="M146.8,64.59H139a1.52,1.52,0,0,1-1.51-1.52V0h10.8V63.07A1.52,1.52,0,0,1,146.8,64.59ZM138.15.64V63.07A.88.88,0,0,0,139,64h7.77a.88.88,0,0,0,.89-.88V.64Z"/><path class="cls-2" d="M127.3,63a1,1,0,0,0,1,1h7.59a1,1,0,0,0,1-1V.59H127.3Z"/><path class="cls-1" d="M136,64.59h-7.77a1.52,1.52,0,0,1-1.52-1.52V0h10.81V63.07A1.52,1.52,0,0,1,136,64.59ZM127.35.64V63.07a.87.87,0,0,0,.88.88H136a.87.87,0,0,0,.88-.88V.64Z"/><path class="cls-2" d="M116.5,63a1,1,0,0,0,1,1h7.6a1,1,0,0,0,1-1V.59H116.5Z"/><path class="cls-1" d="M125.2,64.59h-7.77a1.52,1.52,0,0,1-1.52-1.52V0h10.8V63.07A1.52,1.52,0,0,1,125.2,64.59ZM116.54.64V63.07a.88.88,0,0,0,.89.88h7.77a.88.88,0,0,0,.88-.88V.64Z"/><path class="cls-1" d="M123.38,0H130a0,0,0,0,1,0,0V41.32a1.13,1.13,0,0,1-1.13,1.13h-4.4a1.13,1.13,0,0,1-1.13-1.13V0A0,0,0,0,1,123.38,0Z"/><path class="cls-1" d="M134.18,0h6.67a0,0,0,0,1,0,0V41.32a1.13,1.13,0,0,1-1.13,1.13h-4.4a1.13,1.13,0,0,1-1.13-1.13V0A0,0,0,0,1,134.18,0Z"/><path class="cls-1" d="M0,87.93H9.87q5.58,0,8.42,2.37t2.83,7.08a6.93,6.93,0,0,1-2.83,6q-2.84,2-8.42,2H5.58v14H0Zm14.13,14.4a7.53,7.53,0,0,0,1.41-5,10.34,10.34,0,0,0-1.45-6,4.94,4.94,0,0,0-4.31-2H5.58v14.7L10,104A5.14,5.14,0,0,0,14.13,102.33Z"/><path class="cls-1" d="M27.42,119.42V87.93h5.63v30H46.7v1.47Z"/><path class="cls-1" d="M80.21,119.42h-6l-.17-.5-.29-.8-.09-.17-3.48-9.45.29.84H56.23l.5-1.38-4.11,11-.17.42H50.52c0-.14,0-.21.08-.21l.17-.46a3.22,3.22,0,0,1,.17-.5,3,3,0,0,1,.12-.3l11-29.35.25-.67h6l11.25,30a.74.74,0,0,1,.1.23c0,.13.09.28.15.44l.21.59Q80.21,119.21,80.21,119.42ZM70,108,63.37,90.15,56.73,108Z"/><path class="cls-1" d="M106.7,88.14h0L106,89.4q-3.32,6-6,10.91l-2.1,3.87v15.24H92.34V105.56l-9-16.16h0l-.71-1.26h0c-.08-.09-.13-.16-.13-.21H88l.17.33,8.44,15.16,7.77-14.28.67-1.21h1.81Z"/><path class="cls-1" d="M160.55,87.93h5.63v31.49h-5.63Z"/><path class="cls-1" d="M202,119.42h-6l-.17-.5-.29-.8-.08-.17L192,108.5l.29.84H178l.5-1.38-4.11,11-.17.42h-1.93c0-.14,0-.21.08-.21l.17-.46a4.79,4.79,0,0,1,.17-.5c.05-.14.1-.24.12-.3L183.9,88.6l.25-.67h6l11.25,30a1,1,0,0,1,.11.23l.14.44.21.59Q202,119.21,202,119.42ZM191.75,108l-6.59-17.81L178.52,108Z"/><path class="cls-1" d="M228.87,87.93v31.49H222L210,92v27.38h-1.81V87.93h6.21L227,116.73V87.93Z"/><path class="cls-1" d="M237.9,95.44a14.71,14.71,0,0,1,5.31-5.79,14.59,14.59,0,0,1,15.08,0,14.71,14.71,0,0,1,5.31,5.79,17.49,17.49,0,0,1,1.93,8.23,18.31,18.31,0,0,1-1.85,8.44,13.54,13.54,0,0,1-5.2,5.67,15.8,15.8,0,0,1-15.46,0,13.54,13.54,0,0,1-5.2-5.67,18.31,18.31,0,0,1-1.85-8.44A17.49,17.49,0,0,1,237.9,95.44Zm5.17,15.9a11.76,11.76,0,0,0,3.08,5.16,6.7,6.7,0,0,0,9.2,0,11.76,11.76,0,0,0,3.08-5.16,24.6,24.6,0,0,0,1.1-7.67,22.87,22.87,0,0,0-1.16-7.47,13,13,0,0,0-3.15-5.27,6.19,6.19,0,0,0-8.94,0,13,13,0,0,0-3.15,5.27,22.87,22.87,0,0,0-1.16,7.47A24.6,24.6,0,0,0,243.07,111.34Z"/><path class="cls-3" d="M126.94,136.09H97.65v-2.83h8.49L122.9,88.42s1.42-4.92-2.35-3.71-11.45,15.36-11.45,15.36l-1.84-.11s5.72-9.88,8.44-13.63c7.41-10.24,13.47-5,14,.67,14.85-13.74,27.94-3.55,24.14,11-3.71,14.28-22.38,26.26-28.11,13.73l-.74,1.48-6.33,20.21H127Zm3.5-39.71c-3.44,8.71-3.69,15.09-.56,16.33s8.47-3.13,11.91-11.84,3.7-15.09.57-16.33S133.89,87.67,130.44,96.38Z"/></g></g></svg></div></div>
@@ -291,7 +318,7 @@ function scaricaRubricaSeManca(){
 
 function showTab(t){
   currentTab=t;searchQ='';
-  ['dash','prossimi','agenda','clienti','sync','analisi','import','contratti','concerti','disponibilita','dipendenti'].forEach(function(x){var b=document.getElementById('tab-'+x); if(b) b.classList.toggle('active',x===t);});
+  ['dash','prossimi','agenda','clienti','sync','analisi','import','contratti','concerti','disponibilita','dipendenti','prezzi'].forEach(function(x){var b=document.getElementById('tab-'+x); if(b) b.classList.toggle('active',x===t);});
   render();
   if(t==='prossimi') caricaProssimi(false);
   if(t==='agenda'){ caricaAgenda(false); caricaAttivita(false); }
@@ -313,6 +340,7 @@ function render(){
   else if(currentTab==='concerti')m.innerHTML=renderConcerti();
   else if(currentTab==='disponibilita')m.innerHTML=renderDisponibilita();
   else if(currentTab==='dipendenti')m.innerHTML=renderDipendenti();
+  else if(currentTab==='prezzi')m.innerHTML=renderPrezzi();
   if(activeId){
     const el=document.getElementById(activeId);
     if(el&&el.focus){
@@ -3736,6 +3764,222 @@ function dpBlocchettoDash(){
   if(!chiavi.length) h+='<div style="font-size:12px;color:#999;margin-top:6px">Nessuna ora segnata finora.</div>';
   return h+'</div>';
 }
+
+/* ===================== PREZZI CONCORRENTI =====================
+   Legge i prezzi pubblicati da Piazzo, Bettin, Longato, Salani e Mercatino Musicale
+   e li mette accanto ai nostri, modello per modello. I siti non si possono leggere
+   dal telefono: li legge il ponte su Google (PN_API) e qui arrivano gia' in righe.
+   Finche' il ponte non c'e', la pagina mostra l'ultima lettura salvata. */
+const PN_API='https://script.google.com/macros/s/AKfycby8OEdoFMeYjl058IuBm9DQz1p31YSaZEkKG-u9ujKVrnUpndLPCTjRriVon5yp0rk6ug/exec';
+const PZ_FONTI=['Piazzo','Bettin','Longato','Salani','Altri negozi','Privati'];
+const PZ_MARCHE=['YAMAHA','KAWAI','STEINWAY','BECHSTEIN','BOSENDORFER','BLUTHNER','PETROF','SCHIMMEL','SCHULZE','SAUTER','FAZIOLI','BOSTON','ESSEX','PEARL RIVER','RITMULLER','KAYSERBURG','YOUNG CHANG','SAMICK','WEINBACH','FURSTEIN','ZIMMERMANN','ROSLER','RONISCH','GROTRIAN','SEILER','PLEYEL','IBACH','FEURICH','HOFFMANN','PFEIFFER','FORSTER','KEMBLE','WENDL','CLEMENT','STEINBACH','ANELLI','TALLONE','BALDWIN','MASON','HAILUN','STEINGRAEBER','IRMLER','BRODMANN','PERZINA','BETTING','CHERNY','STRAUSS','APOLLO','ATLAS','DIAPASON','TOYO','EASTEIN','VICTOR','MIKI','KAISER'];
+const PZ_SIGLE={YAMAHA:'YUS|YUA|YUX|YU|UX|U|YM|WX|W|MC|LU|JU|JX|SU|SE|B|P|M|T|E|MX|HQ|GB|GC|CFX|CF|C|G|S|A|DU|DC|N',KAWAI:'KS|KG|KU|K|BL|BS|US|NS|RX|GL|GX|GE|GM|CA|CS|CX|CE|ND|HA|KF|NV|SK|XO'};
+const PZ_NUOVI=' B1 B2 B3 P116 P121 P22 GB1 GC1 GC2 C1X C2X C3X C5X C6X C7X YUS1 YUS3 YUS5 SE122 SE132 SU7 CFX K15 K200 K300 K400 K500 K600 K800 GL10 GL20 GL30 GL40 GL50 GX1 GX2 GX3 GX5 GX6 GX7 ND21 E200 E300 ';
+var pzDati=null,pzCarico=false,pzMsg='',pzTipo='verticale',pzAperto='',pzQ='',pzSeme=false;
+
+function pzE(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function pzEur(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function pzMed(v){if(!v.length)return 0;var a=v.slice().sort(function(x,y){return x-y;}),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
+function pzSt(v){if(!v.length)return {n:0};return {n:v.length,min:Math.min.apply(null,v),max:Math.max.apply(null,v),med:pzMed(v)};}
+function pzNome(m){return m.charAt(0)+m.slice(1).toLowerCase();}
+
+/* Da una riga grezza (fonte, nome, prezzo...) a una riga riconosciuta: marca, modello,
+   verticale o coda, silent, usato o nuovo. Restituisce null se non serve al confronto. */
+function pzRiconosci(r){
+  var nome=String(r.n||''); if(!nome||r.t==='digitale') return null;
+  var pulito=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();};
+  var n=pulito(nome).replace(/[“”"«»'’]/g,' ').replace(/\bMOD(ELLO)?\b\.?/g,' ').replace(/\s+/g,' ');
+  var tutto=pulito(nome+' '+(r.b||'')+' '+(r.c||''));
+  var marca='',pos=1e9;
+  PZ_MARCHE.forEach(function(m){var i=n.indexOf(m); if(i>=0&&i<pos){marca=m;pos=i;}});
+  if(!PZ_SIGLE[marca]) return null;
+  var resto=n.slice(pos+marca.length),fam='',sigla='';
+  var re=new RegExp('(^|[^A-Z0-9])('+PZ_SIGLE[marca]+')[ \\-.]?(\\d{1,3})([A-Z0-9]{0,12})(?![A-Z0-9])','g'),m;
+  while((m=re.exec(resto))){
+    var p=m[2],d=m[3],s=m[4];
+    if(marca==='YAMAHA'&&p==='N'&&!/^[123]$/.test(d)){ re.lastIndex=m.index+1; continue; }
+    sigla=p+d+s; fam=p+d+((marca==='YAMAHA'&&p==='C'&&/^X/.test(s))?'X':''); break;
+  }
+  if(!fam) return null;
+  var tipo=(r.t==='verticale'||r.t==='coda')?r.t:'';
+  if(!tipo) tipo=(/^(C\d|G\d|GB|GC|KG|RX|CA\d|GL|GX|GS|CFX|CF\d|S\d|A\d|DC|GE|GM|SK|KF)/.test(fam)||/\bCODA\b|CODINO|MEZZA ?CODA|GRAN ?CODA/.test(tutto))?'coda':'verticale';
+  if(/^(C\d|G\d|GB|GC|KG|RX|CA\d|GL|GX|GS)/.test(fam)) tipo='coda';
+  var silent=/SILENT|TRANSACOUSTIC|ANYTIME|ATX|\bSH[23]?\b|\bSC ?[23]\b|\bSG2\b|DISKLAVIER|SC\d?PE/.test(n)||/^[A-Z]+\d+[A-Z]*(SC\d|SH\d?|SG\d|TA\d|TC\d|ATX)/.test(sigla)||/^YM5S/.test(sigla);
+  var stato='',src=r.f,dove='';
+  if(r.f==='Salani') stato=/^usato/.test(r.b||'')?'usato':'nuovo';
+  else if(r.f==='Mercatino') stato=/NUOVO/.test(r.c||'')?'nuovo':'usato';
+  else if(r.f==='PlayPiano') stato='usato';
+  else if(/\bNUOV[OA]\b/.test(n)&&!/SEMI ?NUOV|PARI AL NUOV|COME NUOV/.test(n)) stato='nuovo';
+  else if(/USAT|OCCASION|RICONDIZ|SECOND|EX[ \-]?DEMO|SEMI ?NUOV|RESTAUR|REVISION/.test(tutto)) stato='usato';
+  if(!stato) stato=PZ_NUOVI.indexOf(' '+fam+' ')>=0?'nuovo':'usato';
+  var prezzo=+r.p||0;
+  if(r.f==='Mercatino'){
+    if(/longato|bettin|piazzo|salani/i.test(r.chi||'')) return null;
+    if(!/PIANO|CODA|VERTICAL/i.test(nome+' '+(r.b||''))) return null;
+    if(/DIGITAL|TASTIER|CLAVINOVA|SYNTH|SINTETIZ|CHITARR|AMPLI|SGABELL|PANCHETT|PANCA|COPRITAST|RICAMBI|CERCO|NOLEGGIO/i.test(nome)) return null;
+    if(prezzo<700) return null;
+    src=r.tv==='Negozio'?'Altri negozi':'Privati';
+    dove=[r.chi,String(r.dv||'').replace(/\s+(ieri|oggi|\d+\s+(settiman|giorn|mes|or|minut)).*$/i,'')].filter(Boolean).join(' · ');
+  }
+  if(r.f!=='PlayPiano'&&(prezzo<500||stato!=='usato')) return null;
+  return {o:r.f,s:src,m:marca,f:fam,g:sigla,t:tipo,x:silent?1:0,p:prezzo,d:(r.d&&!/VENDUT/.test(n))?1:0,n:nome.replace(/\s+/g,' ').slice(0,90),u:r.u||'',w:dove};
+}
+
+/* Mette da parte la lettura nuova. Se una fonte questa volta non ha risposto, tiene le
+   righe della volta prima, e segna cosa e' cambiato rispetto a prima. */
+function pzSalva(righe,quando,avvisi,primaVolta){
+  var nuove=[],gia={}; (righe||[]).forEach(function(r){var x=pzRiconosci(r); if(x&&!gia[x.o+'|'+x.u]){ gia[x.o+'|'+x.u]=1; nuove.push(x); }});
+  var vecchie=(pzDati&&pzDati.righe)||[],tenute=[];
+  if(!primaVolta&&vecchie.length){
+    var presenti={}; nuove.forEach(function(x){presenti[x.o]=1;});
+    var mancanti={}; vecchie.forEach(function(x){ if(!presenti[x.o]){ nuove.push(x); mancanti[x.o]=1; } });
+    tenute=Object.keys(mancanti);
+  }
+  var diff=null;
+  if(!primaVolta&&vecchie.length){
+    var prima={},ora={}; vecchie.forEach(function(x){ if(x.s!=='PlayPiano'&&x.d) prima[x.u]=x; });
+    diff={nuovi:[],spariti:[],cambiati:[],rispetto:pzDati.quando};
+    nuove.forEach(function(x){ if(x.s==='PlayPiano'||!x.d) return; ora[x.u]=1; var v=prima[x.u];
+      if(!v) diff.nuovi.push(x); else if(Math.abs(v.p-x.p)>=1) diff.cambiati.push({m:x.m,f:x.f,x:x.x,s:x.s,u:x.u,p:x.p,era:v.p}); });
+    Object.keys(prima).forEach(function(u){ if(!ora[u]) diff.spariti.push(prima[u]); });
+  }
+  pzDati={quando:quando,righe:nuove,diff:diff,tenute:tenute,avvisi:avvisi||[]};
+  lsSet('pf_prezzi',pzDati);
+}
+function pzCaricaSalvati(){
+  if(pzDati) return;
+  try{var d=lsGet('pf_prezzi'); if(d) pzDati=JSON.parse(d);}catch(e){}
+  if(pzDati||pzSeme) return;
+  pzSeme=true;
+  fetch('prezzi-seed.json').then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(j&&j.righe&&!pzDati){ pzSalva(j.righe,j.quando,[],true); if(currentTab==='prezzi') render(); }
+  }).catch(function(){});
+}
+async function pzAggiorna(){
+  if(pzCarico) return;
+  if(!PN_API){ pzMsg='La lettura in diretta non è ancora attiva: manca il via libera su Google (un clic, una volta sola). Intanto qui sotto c\'è l\'ultima lettura.'; render(); return; }
+  var tok=lsGet('pf_gtoken');
+  if(!tok||!tokenBuono()){ pzMsg='Prima collegati a Google dalla sezione Sincronizza, poi torna qui e riprova.'; render(); return; }
+  pzCarico=true; pzMsg=''; render();
+  try{
+    const res=await fetch(PN_API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({azione:'prezzi',gtoken:tok})});
+    const j=await res.json();
+    if(!j.ok) throw new Error(j.errore||'risposta non valida');
+    if(!j.righe||!j.righe.length) throw new Error('nessun sito ha risposto');
+    pzSalva(j.righe,j.quando,j.avvisi,false);
+    pzMsg='Letti '+j.righe.length+' annunci.';
+  }catch(e){ pzMsg='Non sono riuscito a leggere i siti: '+(e&&e.message||e); }
+  pzCarico=false; render();
+}
+
+/* Raggruppa per modello e fa i conti: per ogni fonte il prezzo a meta', il piu' basso,
+   il piu' alto. Solo usati disponibili; oltre 2,2 volte il prezzo a meta' e' "fuori scala". */
+function pzGruppi(){
+  var G={};
+  (pzDati.righe||[]).forEach(function(x){
+    var k=x.m+'|'+x.f+'|'+x.x, g=G[k]||(G[k]={k:k,m:x.m,f:x.f,x:x.x,t:{},ann:[],miei:[]});
+    if(x.s==='PlayPiano'){ g.miei.push(x); return; }
+    g.t[x.t]=(g.t[x.t]||0)+1; g.ann.push(x);
+  });
+  return Object.keys(G).map(function(k){
+    var g=G[k], neg=g.ann.filter(function(x){return x.d&&x.s!=='Privati';}).map(function(x){return x.p;});
+    var m=pzMed(neg)||pzMed(g.ann.map(function(x){return x.p;}));
+    g.ann.forEach(function(x){x.fuori=(m&&x.p>2.2*m)?1:0;});
+    var buoni=g.ann.filter(function(x){return x.d&&!x.fuori;});
+    g.per={}; PZ_FONTI.forEach(function(c){g.per[c]=pzSt(buoni.filter(function(x){return x.s===c;}).map(function(x){return x.p;}));});
+    g.negozi=pzSt(buoni.filter(function(x){return x.s!=='Privati';}).map(function(x){return x.p;}));
+    g.privati=g.per['Privati']; g.n=buoni.length;
+    g.tipo=(g.t.coda||0)>(g.t.verticale||0)?'coda':(g.ann.length?'verticale':((g.miei[0]&&g.miei[0].t)||'verticale'));
+    if(/^(C\d|G\d|GB|GC|KG|RX|CA\d|GL|GX|GS)/.test(g.f)) g.tipo='coda';
+    g.nome=pzNome(g.m)+' '+g.f+(g.x?' Silent':'');
+    return g;
+  });
+}
+function pzDove(prezzo,s){
+  if(!s.n) return '<span class="pz-nd">nessun confronto</span>';
+  if(s.n<3) return '<span class="pz-nd">'+(s.n===1?'un solo annuncio':'solo '+s.n+' annunci')+'</span>';
+  var d=(prezzo-s.med)/s.med*100;
+  if(Math.abs(d)<7) return '<span class="badge">in linea</span>';
+  return '<span class="badge '+(d<0?'badge-orange':'badge-red')+'">'+(d<0?'−':'+')+Math.abs(d).toFixed(0)+'%</span>';
+}
+function pzRigaFonte(c,s){
+  if(!s.n) return '';
+  return '<div class="pz-fr"><span>'+c+'</span><b>'+pzEur(s.med)+'</b><i>'+(s.n===1?'1 solo':pzEur(s.min)+'–'+pzEur(s.max)+' · '+s.n)+'</i></div>';
+}
+function pzApri(k){ pzAperto=(pzAperto===k?'':k); render(); }
+function pzVai(k,tipo){ pzAperto=k; pzTipo=tipo; pzQ=''; render(); var e=document.getElementById('pzc-'+k.replace(/\|/g,'-')); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); }
+function pzDataIt(q){ var a=String(q||'').slice(0,10).split('-'); return a.length===3?a[2]+'/'+a[1]+'/'+a[0]:''; }
+
+function renderPrezzi(){
+  pzCaricaSalvati();
+  var h='<div class="card"><div class="section-title">Prezzi dei concorrenti</div>';
+  if(!pzDati){
+    h+='<div style="font-size:13px;color:#666;margin-bottom:12px">Sto caricando l\'ultima lettura…</div>';
+    h+='<button class="btn-primary" onclick="pzAggiorna()"'+(pzCarico?' disabled':'')+'>'+(pzCarico?'Sto leggendo i siti…':'Leggi i siti adesso')+'</button>';
+    if(pzMsg) h+='<div class="pz-msg">'+pzE(pzMsg)+'</div>';
+    return h+'</div>';
+  }
+  var gruppi=pzGruppi(), ann=pzDati.righe.filter(function(x){return x.s!=='PlayPiano';});
+  h+='<div style="font-size:13px;color:#444;line-height:1.45;margin-bottom:12px">Lettura del <b>'+pzDataIt(pzDati.quando)+'</b> · '+ann.length+' pianoforti usati Yamaha e Kawai da Piazzo, Bettin, Longato, Salani e Mercatino Musicale. Sono prezzi richiesti, non di vendita.</div>';
+  h+='<button class="btn-primary" onclick="pzAggiorna()"'+(pzCarico?' disabled':'')+'>'+(pzCarico?'Sto leggendo i siti… (circa un minuto)':'Aggiorna adesso')+'</button>';
+  if(pzMsg) h+='<div class="pz-msg">'+pzE(pzMsg)+'</div>';
+  if(pzDati.tenute&&pzDati.tenute.length) h+='<div class="pz-msg">Questa volta non hanno risposto: '+pzE(pzDati.tenute.join(', '))+'. Per loro vedi i prezzi della lettura prima.</div>';
+  h+='</div>';
+
+  var df=pzDati.diff;
+  if(df&&(df.nuovi.length||df.spariti.length||df.cambiati.length)){
+    h+='<div class="card"><div class="section-title">Cosa è cambiato dal '+pzDataIt(df.rispetto)+'</div>';
+    var riga=function(x,extra){return '<a class="pz-an" href="'+pzE(x.u)+'" target="_blank" rel="noopener"><b>'+pzEur(x.p)+'</b><span>'+pzE(pzNome(x.m)+' '+x.f+(x.x?' Silent':''))+' · '+pzE(x.s)+(extra||'')+'</span></a>';};
+    if(df.cambiati.length){ h+='<div class="pz-sub">Prezzi cambiati · '+df.cambiati.length+'</div>'; df.cambiati.slice(0,40).forEach(function(x){h+=riga(x,' · era '+pzEur(x.era));}); }
+    if(df.nuovi.length){ h+='<div class="pz-sub">Annunci nuovi · '+df.nuovi.length+'</div>'; df.nuovi.slice(0,40).forEach(function(x){h+=riga(x);}); }
+    if(df.spariti.length){ h+='<div class="pz-sub">Spariti (venduti o tolti) · '+df.spariti.length+'</div>'; df.spariti.slice(0,40).forEach(function(x){h+=riga(x);}); }
+    h+='</div>';
+  }
+
+  var perK={}; gruppi.forEach(function(g){perK[g.k]=g;});
+  var miei=pzDati.righe.filter(function(x){return x.s==='PlayPiano';});
+  var conPrezzo=miei.filter(function(x){return x.p>0&&x.d;}).sort(function(a,b){return a.p-b.p;});
+  if(conPrezzo.length){
+    h+='<div class="card"><div class="section-title">I tuoi prezzi accanto ai loro</div>';
+    conPrezzo.forEach(function(x){ var g=perK[x.m+'|'+x.f+'|'+x.x], s=g.negozi;
+      h+='<div class="pz-mio" onclick="pzVai(\''+g.k+'\',\''+g.tipo+'\')"><div><b>'+pzE(pzNome(x.m)+' '+x.g)+'</b>'+(x.x?' Silent':'')+'<i>'+(s.n?'negozi a metà '+pzEur(s.med)+' · da '+pzEur(s.min)+' a '+pzEur(s.max):'nessun annuncio simile')+'</i></div><div class="pz-dx"><b>'+pzEur(x.p)+'</b>'+pzDove(x.p,s)+'</div></div>'; });
+    h+='</div>';
+  }
+  var senza={}; miei.filter(function(x){return !x.p&&x.d;}).forEach(function(x){var k=x.m+'|'+x.f+'|'+x.x; (senza[k]=senza[k]||[]).push(x);});
+  var ks=Object.keys(senza).filter(function(k){return perK[k].negozi.n;}).sort(function(a,b){return senza[b].length-senza[a].length;});
+  if(ks.length){
+    h+='<div class="card"><div class="section-title">I tuoi senza prezzo sul sito</div>';
+    ks.forEach(function(k){ var g=perK[k], s=g.negozi;
+      h+='<div class="pz-mio" onclick="pzVai(\''+g.k+'\',\''+g.tipo+'\')"><div><b>'+pzE(g.nome)+'</b>'+(senza[k].length>1?' ×'+senza[k].length:'')+'<i>da '+pzEur(s.min)+' a '+pzEur(s.max)+' · '+s.n+(s.n===1?' annuncio':' annunci')+'</i></div><div class="pz-dx"><b>'+pzEur(s.med)+'</b><span class="pz-nd">a metà</span></div></div>'; });
+    h+='</div>';
+  }
+
+  h+='<div class="pz-chips"><button class="'+(pzTipo==='verticale'?'on':'')+'" onclick="pzTipo=\'verticale\';render()">Verticali</button><button class="'+(pzTipo==='coda'?'on':'')+'" onclick="pzTipo=\'coda\';render()">A coda</button></div>';
+  h+='<input id="pz-q" class="pz-cerca" type="search" placeholder="Cerca un modello: U3, C3, KG2…" value="'+pzE(pzQ)+'" oninput="pzQ=this.value;render()">';
+  var q=pzQ.trim().toUpperCase().replace(/[\s\-]/g,'');
+  var lista=gruppi.filter(function(g){return g.tipo===pzTipo&&g.ann.length&&(!q||(g.m+g.f+(g.x?'SILENT':'')).indexOf(q)>=0||g.f.indexOf(q)===0);})
+    .filter(function(g){return q||g.n>=2||g.miei.length;})
+    .sort(function(a,b){return b.n-a.n||a.nome.localeCompare(b.nome);});
+  if(!lista.length) h+='<div class="empty-state">Nessun modello trovato.</div>';
+  lista.forEach(function(g){
+    var aperto=pzAperto===g.k, s=g.negozi;
+    var mieiTxt=''; var mp=g.miei.filter(function(x){return x.p>0&&x.d;}).map(function(x){return pzEur(x.p);}), ms=g.miei.filter(function(x){return !x.p&&x.d;}).length;
+    if(mp.length) mieiTxt='Tu: <b>'+mp.join(' · ')+'</b>'; if(ms) mieiTxt+=(mieiTxt?' · ':'Tu: ')+ms+' senza prezzo';
+    h+='<div class="card pz-mod" id="pzc-'+g.k.replace(/\|/g,'-')+'"><div class="pz-top" onclick="pzApri(\''+g.k+'\')"><div><b>'+pzE(g.nome)+'</b><i>'+g.n+(g.n===1?' in vendita':' in vendita')+(s.n>1?' · da '+pzEur(s.min)+' a '+pzEur(s.max):'')+'</i></div><div class="pz-dx"><b>'+(s.n?pzEur(s.med):'—')+'</b><span class="pz-nd">negozi, a metà</span></div></div>';
+    if(mieiTxt) h+='<div class="pz-tu">'+mieiTxt+'</div>';
+    h+='<div class="pz-fonti">'+PZ_FONTI.map(function(c){return pzRigaFonte(c,g.per[c]);}).join('')+'</div>';
+    if(aperto){
+      h+='<div class="pz-sub">Tutti gli annunci · tocca per aprirli</div>';
+      g.ann.slice().sort(function(a,b){return a.p-b.p;}).forEach(function(x){
+        h+='<a class="pz-an'+(x.d?'':' off')+'" href="'+pzE(x.u)+'" target="_blank" rel="noopener"><b>'+pzEur(x.p)+'</b><span>'+pzE(x.s)+(x.w?' · '+pzE(x.w):'')+' · '+pzE(x.g)+(x.d?'':' · non più disponibile')+(x.fuori?' · fuori scala':'')+'<em>'+pzE(x.n)+'</em></span></a>';
+      });
+    } else h+='<div class="pz-piu" onclick="pzApri(\''+g.k+'\')">Vedi i '+g.ann.length+' annunci</div>';
+    h+='</div>';
+  });
+  h+='<div style="font-size:11.5px;color:#999;line-height:1.5;padding:4px 4px 20px">Il prezzo “a metà” divide gli annunci in due: metà costano meno, metà di più. Anno e matricola i siti quasi mai li scrivono: nello stesso modello ci sono pianoforti di età diverse. Zanta non pubblica prezzi.</div>';
+  return h;
+}
+
 load();scaricaRubricaSeManca();render();
 </script>
 </body>
