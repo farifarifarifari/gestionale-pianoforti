@@ -165,6 +165,12 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .pz-chips button.on{background:#A01020;color:#fff;border-color:#A01020}
 .pz-cerca{width:100%;padding:10px 12px;border:.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:12px;background:#fff}
 .pz-mod{scroll-margin-top:64px}
+.pn-come{margin-top:12px;font-size:12.5px;color:#555}.pn-come summary{cursor:pointer;color:#A01020}.pn-come ol{margin:8px 0 0 18px;line-height:1.5}.pn-come li{margin-bottom:4px}
+.pn-t .pn-n{font-size:26px;font-weight:600;line-height:1}.pn-t .pn-e{font-size:12px;margin-top:4px;font-variant-numeric:tabular-nums}.pn-t .metric-label{margin:6px 0 0}
+.pn-nota{font-size:12px;color:#777;line-height:1.45;margin-bottom:6px}
+.pn-r{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:.5px solid #eee;align-items:flex-start}.pn-r:last-child{border-bottom:0;padding-bottom:0}
+.pn-r>div:first-child{min-width:0}.pn-r b{font-size:13.5px}.pn-r i{display:block;font-style:normal;font-size:11.5px;color:#888;margin-top:2px;word-break:break-word}
+.pn-dx{text-align:right;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end;gap:4px}.pn-dx b{font-size:14.5px;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -217,6 +223,10 @@ Agenda
     <button onclick="showTab('prezzi')" id="tab-prezzi">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Prezzi
+    </button>
+    <button onclick="showTab('primanota')" id="tab-primanota">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Prima nota
     </button>
   </nav>
   <div style="padding:10px 12px 6px;text-align:center"><div style="display:inline-block;width:55%;max-width:240px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 265.53 155.95"><defs><style>.cls-1{fill:#1d1d1b;}.cls-2{fill:transparent;}.cls-3{fill:#c03;}</style></defs><title>logo_playpiano1</title><g id="Livello_2" data-name="Livello 2"><g id="Livello_1-2" data-name="Livello 1"><path class="cls-1" d="M47.66,145.57h3.21a4.2,4.2,0,0,1,2.74.77,2.84,2.84,0,0,1,.92,2.31,2.25,2.25,0,0,1-.92,2,4.69,4.69,0,0,1-2.74.66H49.48v4.55H47.66Zm4.6,4.69a2.49,2.49,0,0,0,.46-1.61,3.3,3.3,0,0,0-.48-2,1.59,1.59,0,0,0-1.4-.67H49.48v4.79H50.9A1.7,1.7,0,0,0,52.26,150.26Z"/><path class="cls-1" d="M65,145.57h1.83v10.25H65Z"/><path class="cls-1" d="M86.88,155.82h-2l0-.16-.1-.26,0-.06-1.14-3.07.1.27H79.07l.17-.45-1.34,3.6-.06.13h-.63s0-.07,0-.07l.05-.15.06-.16,0-.1,3.6-9.55.08-.22h2l3.66,9.77,0,.08a1,1,0,0,0,0,.14l.07.19S86.88,155.78,86.88,155.82Zm-3.34-3.73-2.14-5.8-2.16,5.8Z"/><path class="cls-1" d="M104,145.57v10.25h-2.24l-3.91-8.91v8.91h-.59V145.57h2l4.12,9.38v-9.38Z"/><path class="cls-1" d="M115.37,148a4.72,4.72,0,0,1,1.73-1.89,4.5,4.5,0,0,1,2.45-.68,4.56,4.56,0,0,1,2.46.68,4.79,4.79,0,0,1,1.73,1.89,5.78,5.78,0,0,1,.62,2.68,6,6,0,0,1-.6,2.74,4.39,4.39,0,0,1-1.69,1.85,5.12,5.12,0,0,1-5,0,4.42,4.42,0,0,1-1.7-1.85,6,6,0,0,1-.6-2.74A5.67,5.67,0,0,1,115.37,148Zm1.68,5.17a3.82,3.82,0,0,0,1,1.68,2.17,2.17,0,0,0,1.5.6,2.13,2.13,0,0,0,1.5-.6,3.73,3.73,0,0,0,1-1.68,7.91,7.91,0,0,0,.36-2.49,7.48,7.48,0,0,0-.38-2.44,4.19,4.19,0,0,0-1-1.71,2,2,0,0,0-1.46-.63,2,2,0,0,0-1.45.63,4.1,4.1,0,0,0-1,1.71,7.48,7.48,0,0,0-.38,2.44A7.91,7.91,0,0,0,117.05,153.19Z"/><path class="cls-1" d="M136.89,155.82h-1.81V145.57h6.74v.48h-4.93v4h4.52v.46h-4.52Z"/><path class="cls-1" d="M152.4,148a4.79,4.79,0,0,1,1.73-1.89,4.77,4.77,0,0,1,4.91,0,4.79,4.79,0,0,1,1.73,1.89,5.67,5.67,0,0,1,.63,2.68,6,6,0,0,1-.6,2.74,4.42,4.42,0,0,1-1.7,1.85,5.12,5.12,0,0,1-5,0,4.39,4.39,0,0,1-1.69-1.85,5.85,5.85,0,0,1-.61-2.74A5.67,5.67,0,0,1,152.4,148Zm1.68,5.17a3.83,3.83,0,0,0,1,1.68,2.16,2.16,0,0,0,3,0,3.74,3.74,0,0,0,1-1.68,7.93,7.93,0,0,0,.35-2.49,7.49,7.49,0,0,0-.37-2.44,4.1,4.1,0,0,0-1-1.71,2,2,0,0,0-2.91,0,4.19,4.19,0,0,0-1,1.71,7.22,7.22,0,0,0-.38,2.44A8.23,8.23,0,0,0,154.08,153.19Z"/><path class="cls-1" d="M172.11,145.57h3.21a4.2,4.2,0,0,1,2.74.77,2.84,2.84,0,0,1,.93,2.31,2,2,0,0,1-1.49,2,4.88,4.88,0,0,1-1,.23l2.88,4.92h-2.09L174.68,151h-.75v4.84h-1.82Zm3.23,5a1.8,1.8,0,0,0,1.36-.48,1.92,1.92,0,0,0,.47-1.4,3.38,3.38,0,0,0-.47-2,1.6,1.6,0,0,0-1.41-.67h-1.36v4.5Z"/><path class="cls-1" d="M191.41,146.05h-3v-.48h7.87v.48h-3v9.77h-1.81Z"/><path class="cls-1" d="M206.35,145.57h1.84v10.25h-1.84Z"/><path class="cls-2" d="M138.11,63a1,1,0,0,0,1,1h7.6a1,1,0,0,0,1-1V.59h-9.62Z"/><path class="cls-3" d="M146.8,64.59H139a1.52,1.52,0,0,1-1.51-1.52V0h10.8V63.07A1.52,1.52,0,0,1,146.8,64.59ZM138.15.64V63.07A.88.88,0,0,0,139,64h7.77a.88.88,0,0,0,.89-.88V.64Z"/><path class="cls-2" d="M127.3,63a1,1,0,0,0,1,1h7.59a1,1,0,0,0,1-1V.59H127.3Z"/><path class="cls-1" d="M136,64.59h-7.77a1.52,1.52,0,0,1-1.52-1.52V0h10.81V63.07A1.52,1.52,0,0,1,136,64.59ZM127.35.64V63.07a.87.87,0,0,0,.88.88H136a.87.87,0,0,0,.88-.88V.64Z"/><path class="cls-2" d="M116.5,63a1,1,0,0,0,1,1h7.6a1,1,0,0,0,1-1V.59H116.5Z"/><path class="cls-1" d="M125.2,64.59h-7.77a1.52,1.52,0,0,1-1.52-1.52V0h10.8V63.07A1.52,1.52,0,0,1,125.2,64.59ZM116.54.64V63.07a.88.88,0,0,0,.89.88h7.77a.88.88,0,0,0,.88-.88V.64Z"/><path class="cls-1" d="M123.38,0H130a0,0,0,0,1,0,0V41.32a1.13,1.13,0,0,1-1.13,1.13h-4.4a1.13,1.13,0,0,1-1.13-1.13V0A0,0,0,0,1,123.38,0Z"/><path class="cls-1" d="M134.18,0h6.67a0,0,0,0,1,0,0V41.32a1.13,1.13,0,0,1-1.13,1.13h-4.4a1.13,1.13,0,0,1-1.13-1.13V0A0,0,0,0,1,134.18,0Z"/><path class="cls-1" d="M0,87.93H9.87q5.58,0,8.42,2.37t2.83,7.08a6.93,6.93,0,0,1-2.83,6q-2.84,2-8.42,2H5.58v14H0Zm14.13,14.4a7.53,7.53,0,0,0,1.41-5,10.34,10.34,0,0,0-1.45-6,4.94,4.94,0,0,0-4.31-2H5.58v14.7L10,104A5.14,5.14,0,0,0,14.13,102.33Z"/><path class="cls-1" d="M27.42,119.42V87.93h5.63v30H46.7v1.47Z"/><path class="cls-1" d="M80.21,119.42h-6l-.17-.5-.29-.8-.09-.17-3.48-9.45.29.84H56.23l.5-1.38-4.11,11-.17.42H50.52c0-.14,0-.21.08-.21l.17-.46a3.22,3.22,0,0,1,.17-.5,3,3,0,0,1,.12-.3l11-29.35.25-.67h6l11.25,30a.74.74,0,0,1,.1.23c0,.13.09.28.15.44l.21.59Q80.21,119.21,80.21,119.42ZM70,108,63.37,90.15,56.73,108Z"/><path class="cls-1" d="M106.7,88.14h0L106,89.4q-3.32,6-6,10.91l-2.1,3.87v15.24H92.34V105.56l-9-16.16h0l-.71-1.26h0c-.08-.09-.13-.16-.13-.21H88l.17.33,8.44,15.16,7.77-14.28.67-1.21h1.81Z"/><path class="cls-1" d="M160.55,87.93h5.63v31.49h-5.63Z"/><path class="cls-1" d="M202,119.42h-6l-.17-.5-.29-.8-.08-.17L192,108.5l.29.84H178l.5-1.38-4.11,11-.17.42h-1.93c0-.14,0-.21.08-.21l.17-.46a4.79,4.79,0,0,1,.17-.5c.05-.14.1-.24.12-.3L183.9,88.6l.25-.67h6l11.25,30a1,1,0,0,1,.11.23l.14.44.21.59Q202,119.21,202,119.42ZM191.75,108l-6.59-17.81L178.52,108Z"/><path class="cls-1" d="M228.87,87.93v31.49H222L210,92v27.38h-1.81V87.93h6.21L227,116.73V87.93Z"/><path class="cls-1" d="M237.9,95.44a14.71,14.71,0,0,1,5.31-5.79,14.59,14.59,0,0,1,15.08,0,14.71,14.71,0,0,1,5.31,5.79,17.49,17.49,0,0,1,1.93,8.23,18.31,18.31,0,0,1-1.85,8.44,13.54,13.54,0,0,1-5.2,5.67,15.8,15.8,0,0,1-15.46,0,13.54,13.54,0,0,1-5.2-5.67,18.31,18.31,0,0,1-1.85-8.44A17.49,17.49,0,0,1,237.9,95.44Zm5.17,15.9a11.76,11.76,0,0,0,3.08,5.16,6.7,6.7,0,0,0,9.2,0,11.76,11.76,0,0,0,3.08-5.16,24.6,24.6,0,0,0,1.1-7.67,22.87,22.87,0,0,0-1.16-7.47,13,13,0,0,0-3.15-5.27,6.19,6.19,0,0,0-8.94,0,13,13,0,0,0-3.15,5.27,22.87,22.87,0,0,0-1.16,7.47A24.6,24.6,0,0,0,243.07,111.34Z"/><path class="cls-3" d="M126.94,136.09H97.65v-2.83h8.49L122.9,88.42s1.42-4.92-2.35-3.71-11.45,15.36-11.45,15.36l-1.84-.11s5.72-9.88,8.44-13.63c7.41-10.24,13.47-5,14,.67,14.85-13.74,27.94-3.55,24.14,11-3.71,14.28-22.38,26.26-28.11,13.73l-.74,1.48-6.33,20.21H127Zm3.5-39.71c-3.44,8.71-3.69,15.09-.56,16.33s8.47-3.13,11.91-11.84,3.7-15.09.57-16.33S133.89,87.67,130.44,96.38Z"/></g></g></svg></div></div>
@@ -318,7 +328,7 @@ function scaricaRubricaSeManca(){
 
 function showTab(t){
   currentTab=t;searchQ='';
-  ['dash','prossimi','agenda','clienti','sync','analisi','import','contratti','concerti','disponibilita','dipendenti','prezzi'].forEach(function(x){var b=document.getElementById('tab-'+x); if(b) b.classList.toggle('active',x===t);});
+  ['dash','prossimi','agenda','clienti','sync','analisi','import','contratti','concerti','disponibilita','dipendenti','prezzi','primanota'].forEach(function(x){var b=document.getElementById('tab-'+x); if(b) b.classList.toggle('active',x===t);});
   render();
   if(t==='prossimi') caricaProssimi(false);
   if(t==='agenda'){ caricaAgenda(false); caricaAttivita(false); }
@@ -341,6 +351,7 @@ function render(){
   else if(currentTab==='disponibilita')m.innerHTML=renderDisponibilita();
   else if(currentTab==='dipendenti')m.innerHTML=renderDipendenti();
   else if(currentTab==='prezzi')m.innerHTML=renderPrezzi();
+  else if(currentTab==='primanota')m.innerHTML=renderPrimaNota();
   if(activeId){
     const el=document.getElementById(activeId);
     if(el&&el.focus){
@@ -3977,6 +3988,210 @@ function renderPrezzi(){
     h+='</div>';
   });
   h+='<div style="font-size:11.5px;color:#999;line-height:1.5;padding:4px 4px 20px">Il prezzo “a metà” divide gli annunci in due: metà costano meno, metà di più. Anno e matricola i siti quasi mai li scrivono: nello stesso modello ci sono pianoforti di età diverse. Zanta non pubblica prezzi.</div>';
+  return h;
+}
+
+/* ===================== CONTROLLO PRIMA NOTA =====================
+   Incrocia i movimenti di Fineco (il file Excel scaricato dalla banca) con le fatture
+   emesse in Fatture in Cloud, lette dal ponte su Google (PN_API). Nessun aggancio
+   approssimato: o coincide il numero di fattura scritto in causale, o coincidono nome
+   e importo al centesimo. Regola della data di taglio: fino al 30/06/2026 e' tutto
+   saldato, si controlla solo da li' in avanti. */
+const PN_TAGLIO='2026-07-01';
+const PN_STOP=' SRL SNC SAS SPA SRLS DI DE DEL DELLA E C SOCIETA COOPERATIVA ASSOCIAZIONE THE ASD APS ETS SOC COOP AR RL A R L ';
+var pnRis=null,pnStato='',pnErr='',pnVediOk=false,pnPdf=null,pnSalvando=false,pnCaricato=false;
+
+function pnG(iso){var a=String(iso).slice(0,10).split('-');return Math.round(Date.UTC(+a[0],+a[1]-1,+a[2])/864e5);}
+function pnIso(g){return new Date(g*864e5).toISOString().slice(0,10);}
+function pnIt(iso,anno){var a=String(iso||'').slice(0,10).split('-');return a.length<3?'':a[2]+'/'+a[1]+(anno?'/'+a[0]:'');}
+function pnNorm(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+function pnStrip(s){return pnNorm(s).replace(/ /g,'');}
+function pnEur(n){var v=Math.abs(+n||0).toFixed(2).split('.');return v[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+v[1];}
+function pnSomma(a,k){return a.reduce(function(s,x){return s+(+x[k]||0);},0);}
+function pnTit(s){return String(s||'').toLowerCase().replace(/(^|[\s'.-])([a-z\u00e0-\u00ff])/g,function(m,a,b){return a+b.toUpperCase();});}
+
+/* Il file di Fineco: la riga dei titoli e' piu' in basso (c'e' un'intestazione sopra),
+   le date arrivano come numero di Excel e la banca infila spazi dentro le parole. */
+function pnLeggiMovimenti(buf){
+  var wb=XLSX.read(buf,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]];
+  var rr=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''}),ih=-1;
+  for(var i=0;i<rr.length&&i<60;i++){ if(rr[i].some(function(c){return /^Data[_ ]?Operazione$/i.test(String(c).trim());})&&rr[i].some(function(c){return /^Entrate$/i.test(String(c).trim());})){ih=i;break;} }
+  if(ih<0) throw new Error('Questo non sembra il file dei movimenti di Fineco: non trovo la riga dei titoli con "Data_Operazione".');
+  var col={}; rr[ih].forEach(function(c,k){col[String(c).trim().toLowerCase().replace(/\s+/g,'_')]=k;});
+  var cD=col['data_operazione'],cE=col['entrate'],cU=col['uscite'],cT=col['descrizione'],cX=col['descrizione_completa'];
+  if(cD==null||cE==null||cX==null) throw new Error('Nel file mancano le colonne Entrate o Descrizione_Completa.');
+  var EX=pnG('1899-12-30'),mov=[];
+  var num=function(v){ if(typeof v==='number') return v; var s=String(v==null?'':v).trim(); if(!s) return 0; if(s.indexOf(',')>=0) s=s.replace(/\./g,'').replace(',','.'); return parseFloat(s)||0; };
+  for(var r=ih+1;r<rr.length;r++){
+    var d=rr[r][cD],g=null,m;
+    if(typeof d==='number'&&d>20000) g=EX+Math.floor(d);
+    else if(/^\d{5}$/.test(String(d).trim())) g=EX+(+String(d).trim());
+    else if((m=String(d).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/))) g=pnG(m[3]+'-'+m[2]+'-'+m[1]);
+    if(g==null) continue;
+    mov.push({j:g,date:pnIso(g),in:num(rr[r][cE]),out:num(cU==null?0:rr[r][cU]),tipo:String(cT==null?'':rr[r][cT]),txt:String(rr[r][cX]||'').replace(/[\t\r\n]+/g,' ')});
+  }
+  if(!mov.length) throw new Error('Nel file non ho trovato movimenti.');
+  return mov;
+}
+
+function pnIncrocia(mov,fatture){
+  var T=pnG(PN_TAGLIO),rate=[];
+  fatture.forEach(function(f){
+    var tok=pnNorm(f.c).split(' ').filter(function(t){return t.length>=2&&PN_STOP.indexOf(' '+t+' ')<0;});
+    (f.r||[]).forEach(function(p){ rate.push({num:String(f.n==null?'':f.n),fdate:String(f.d).slice(0,10),fj:pnG(f.d),cli:f.c||'',tok:tok,amt:+p.a||0,st:p.s,due:String(p.sc||f.d).slice(0,10),paid:String(p.p||'').slice(0,10),used:0}); });
+  });
+  var BEN='B\\s*e\\s*n\\s*(?:e\\s*f\\s*i\\s*c\\s*i\\s*a\\s*r\\s*i\\s*o\\s*)?:';
+  var reOrd=new RegExp('Ord(?:inante)?:\\s*(.*?)\\s*'+BEN,'i');
+  var ordinante=function(t){var m=t.match(reOrd); if(m) return m[1]; m=t.match(/O\/C:\s*(.*?)\s*IMP:/i); return m?m[1]:'';};
+  var causale=function(t){var m=t.match(/(?:C\s*a\s*u\s*s\s*a\s*l\s*e|Info-Cli|I\s*n\s*f\s*o\s*-\s*C\s*l\s*i|CAU)\s*:\s*(.*)$/i); return m?m[1]:'';};
+  var pulisci=function(s){return String(s||'').replace(/\s+/g,' ').trim();};
+  var nomeok=function(r,txt){ if(!r.tok.length) return false; var so=pnStrip(txt),no=' '+pnNorm(txt)+' ';
+    for(var i=0;i<r.tok.length;i++){var k=r.tok[i]; if(k.length>=3){ if(so.indexOf(k)<0) return false; } else if(no.indexOf(' '+k+' ')<0) return false; } return true; };
+  var ent=mov.filter(function(m){return m.in>0&&!/Sconto Canone/i.test(m.tipo);}).sort(function(a,b){return a.j-b.j;});
+  ent.forEach(function(e){ e.ord=pulisci(ordinante(e.txt)); e.cau=pulisci(causale(e.txt)); e.liv='NESSUNA';
+    var m=pnNorm(e.cau).match(/\b(?:FATTURA|FATT|FT)\s*(?:NUMERO|NUM|NR|N)?\s*(\d{1,3})\b/); if(m) e.nf=String(parseInt(m[1],10)); });
+  var uguale=function(a,b){return Math.abs(a-b)<0.011;};
+  var finestra=function(r,e){return r.fj>=e.j-400&&r.fj<=e.j+60&&(r.st!=='paid'||!r.paid||Math.abs(pnG(r.paid)-e.j)<=45);};
+  var prendi=function(e,r,liv){ r.used=1; e.liv=liv; e.num=r.num; e.fdate=r.fdate; e.cli=r.cli; e.st=r.st; e.ramt=r.amt; };
+  // 1: numero di fattura scritto in causale, importo uguale o quasi
+  ent.filter(function(e){return e.nf!=null;}).forEach(function(e){
+    var c=rate.filter(function(r){return !r.used&&String(parseInt(r.num,10))===e.nf&&finestra(r,e)&&Math.abs(r.amt-e.in)<=1;})
+      .sort(function(a,b){return Math.abs(a.amt-e.in)-Math.abs(b.amt-e.in)||Math.abs(a.fj-e.j)-Math.abs(b.fj-e.j);});
+    if(c.length) prendi(e,c[0],uguale(c[0].amt,e.in)?'CERTO':'CERTO diverso'); });
+  // 2: nome di chi paga + importo al centesimo
+  ent.filter(function(e){return e.liv==='NESSUNA'&&e.ord;}).forEach(function(e){
+    var c=rate.filter(function(r){return !r.used&&uguale(r.amt,e.in)&&finestra(r,e)&&nomeok(r,e.ord);})
+      .sort(function(a,b){return (a.st==='paid')-(b.st==='paid')||Math.abs(a.fj-e.j)-Math.abs(b.fj-e.j);});
+    if(c.length) prendi(e,c[0],'CERTO'); });
+  // 3: nome nella causale + importo al centesimo
+  ent.filter(function(e){return e.liv==='NESSUNA'&&e.cau;}).forEach(function(e){
+    var c=rate.filter(function(r){return !r.used&&uguale(r.amt,e.in)&&finestra(r,e)&&nomeok(r,e.cau);}).sort(function(a,b){return Math.abs(a.fj-e.j)-Math.abs(b.fj-e.j);});
+    if(c.length) prendi(e,c[0],'CERTO'); });
+  // 4: solo un suggerimento, mai applicato da solo
+  ent.filter(function(e){return e.liv==='NESSUNA';}).forEach(function(e){
+    var c=rate.filter(function(r){return !r.used&&uguale(r.amt,e.in)&&r.fj>=e.j-75&&r.fj<=e.j+45&&finestra(r,e);});
+    var stessi=ent.filter(function(x){return x.liv==='NESSUNA'&&uguale(x.in,e.in)&&Math.abs(x.j-e.j)<=75;});
+    if(c.length!==1||stessi.length!==1) return;
+    var so=pnStrip(e.ord+' '+e.cau); if(!c[0].tok.some(function(k){return k.length>=4&&so.indexOf(k)>=0;})) return;
+    e.liv='DA CONFERMARE'; e.num=c[0].num; e.fdate=c[0].fdate; e.cli=c[0].cli; e.st=c[0].st; });
+  // chi paga e' gia' un cliente in Fatture in Cloud?
+  var clienti={}; rate.forEach(function(r){ if(!clienti[r.cli]) clienti[r.cli]=r; });
+  var nomi=Object.keys(clienti).sort();
+  ent.filter(function(e){return e.liv==='NESSUNA';}).forEach(function(e){ for(var i=0;i<nomi.length;i++){ if(nomeok(clienti[nomi[i]],e.ord+' '+e.cau)){ e.noto=nomi[i]; break; } } });
+  var ultima=fatture.reduce(function(a,f){var d=String(f.d).slice(0,10); return (!a||d>a.d||(d===a.d&&+f.n>+a.n))?{d:d,n:f.n}:a;},null);
+  var entro=ent.filter(function(e){return e.j>=T;}).map(function(e){return {date:e.date,in:e.in,tipo:e.tipo,ord:e.ord,cau:e.cau,liv:e.liv,num:e.num,fdate:e.fdate,cli:e.cli,st:e.st,ramt:e.ramt,noto:e.noto?1:0};});
+  var aperte=rate.filter(function(r){return r.fj>=T&&r.st!=='paid'&&!r.used;}).sort(function(a,b){return a.fj-b.fj;}).map(function(r){return {num:r.num,fdate:r.fdate,due:r.due,amt:r.amt,cli:r.cli};});
+  var usc=mov.filter(function(m){return m.out!==0&&m.j>=T;});
+  var gg=mov.map(function(m){return m.j;});
+  return {ent:entro,aperte:aperte,nUsc:usc.length,totUsc:usc.reduce(function(s,m){return s+Math.abs(m.out);},0),ultima:ultima,
+    dal:pnIso(Math.max(T,Math.min.apply(null,gg))),al:pnIso(Math.max.apply(null,gg)),fatto:new Date().toISOString().slice(0,10)};
+}
+function pnGruppi(R){
+  var E=R.ent,ud=R.ultima?R.ultima.d:'9999';
+  var o={ok:E.filter(function(e){return /^CERTO/.test(e.liv)&&e.st==='paid';}),sp:E.filter(function(e){return /^CERTO/.test(e.liv)&&e.st!=='paid';}),
+    dc:E.filter(function(e){return e.liv==='DA CONFERMARE';}),ne:E.filter(function(e){return e.liv==='NESSUNA';})};
+  o.neDopo=o.ne.filter(function(e){return e.date>ud;}).reverse(); o.nePrima=o.ne.filter(function(e){return e.date<=ud;}).reverse();
+  return o;
+}
+
+async function pnPonte(corpo){
+  var tok=lsGet('pf_gtoken');
+  if(!tok||!tokenBuono()) throw new Error('Prima collegati a Google dalla sezione Sincronizza, poi torna qui e riprova.');
+  corpo.gtoken=tok;
+  const res=await fetch(PN_API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(corpo)});
+  const j=await res.json();
+  if(!j.ok) throw new Error(j.errore||'risposta non valida');
+  return j;
+}
+async function pnFile(inp){
+  var f=inp.files&&inp.files[0]; if(!f) return;
+  pnErr=''; pnPdf=null; pnStato='Leggo il file della banca\u2026'; render();
+  try{
+    var mov=pnLeggiMovimenti(await f.arrayBuffer());
+    var primo=Math.min.apply(null,mov.map(function(m){return m.j;}));
+    pnStato='Letti '+mov.length+' movimenti. Ora leggo le fatture da Fatture in Cloud\u2026'; render();
+    var j=await pnPonte({azione:'emesse',dal:pnIso(Math.min(primo,pnG(PN_TAGLIO))-400)});
+    pnRis=pnIncrocia(mov,j.fatture||[]); pnRis.file=f.name; pnRis.nFatt=(j.fatture||[]).length;
+    lsSet('pf_primanota',pnRis);
+  }catch(e){ pnErr=String(e&&e.message||e); }
+  pnStato=''; render();
+}
+
+/* La pagina che diventa PDF: stessa sostanza di quella a video, in forma di tabelle. */
+function pnReportHtml(R){
+  var g=pnGruppi(R),e=pzE;
+  var th='style="text-align:left;font-size:9px;color:#666;border-bottom:1px solid #999;padding:4px 6px"',td='style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:10px;vertical-align:top"',tn='style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:10px;text-align:right;white-space:nowrap"';
+  var tab=function(tit,righe){return '<table width="100%" cellspacing="0" style="border-collapse:collapse;margin:4px 0 14px"><tr>'+tit.map(function(t){return '<th '+th+'>'+t+'</th>';}).join('')+'</tr>'+righe.join('')+'</table>';};
+  var ne=function(a){return a.map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(pnTit(x.ord||x.tipo))+'</b><br><span style="color:#666;font-size:8.5px">'+e(x.cau)+'</span></td><td '+tn+'>'+pnEur(x.in)+'</td><td '+td+'>'+(x.noto?'gi\u00e0 cliente':'cliente da creare')+'</td></tr>';});};
+  var h='<html><head><meta charset="utf-8"></head><body style="font-family:Arial,Helvetica,sans-serif;color:#111">';
+  h+='<h1 style="font-size:20px;margin:0 0 4px">Controllo prima nota</h1><div style="font-size:10px;color:#555;margin-bottom:12px">Banca Fineco contro Fatture in Cloud \u00b7 incassi dal '+pnIt(R.dal,1)+' al '+pnIt(R.al,1)+' \u00b7 '+R.ent.length+' movimenti in entrata, '+pnEur(pnSomma(R.ent,'in'))+' \u20ac \u00b7 fatto il '+pnIt(R.fatto,1)+'</div>';
+  h+='<table width="100%" cellspacing="6" style="margin-bottom:10px"><tr>'+[[g.ne.length,'incassi senza fattura',pnSomma(g.ne,'in'),'#A01020'],[g.sp.length+g.dc.length,'fatture pagate da spuntare',pnSomma(g.sp,'in')+pnSomma(g.dc,'in'),'#9a6f00'],[R.aperte.length,'fatture senza incasso in banca',pnSomma(R.aperte,'amt'),'#c2571a'],[g.ok.length,'a posto',pnSomma(g.ok,'in'),'#2e7d32']]
+    .map(function(t){return '<td style="border:1px solid #ccc;border-left:5px solid '+t[3]+';padding:8px"><div style="font-size:20px"><b>'+t[0]+'</b></div><div style="font-size:9px;color:#555">'+t[1]+'</div><div style="font-size:10px">'+pnEur(t[2])+' \u20ac</div></td>';}).join('')+'</tr></table>';
+  var ul=R.ultima?'n. '+e(R.ultima.n)+' del '+pnIt(R.ultima.d,1):'';
+  h+='<h2 style="font-size:14px;margin:14px 0 2px;color:#A01020">Incassi senza fattura</h2><div style="font-size:9.5px;color:#555">Soldi entrati in banca per cui in Fatture in Cloud non c\'\u00e8 una fattura. Non tutti vanno fatturati: lo decide Andrea.</div>';
+  if(g.neDopo.length) h+='<div style="font-size:10px;margin-top:8px"><b>Dopo l\'ultima fattura ('+ul+') \u00b7 '+g.neDopo.length+' incassi \u00b7 '+pnEur(pnSomma(g.neDopo,'in'))+' \u20ac</b></div>'+tab(['Data','Chi ha pagato','\u20ac',''],ne(g.neDopo));
+  if(g.nePrima.length) h+='<div style="font-size:10px;margin-top:8px"><b>Prima \u00b7 '+g.nePrima.length+' incassi \u00b7 '+pnEur(pnSomma(g.nePrima,'in'))+' \u20ac</b></div>'+tab(['Data','Chi ha pagato','\u20ac',''],ne(g.nePrima));
+  h+='<h2 style="font-size:14px;margin:14px 0 2px;color:#9a6f00">Fatture pagate, da spuntare</h2><div style="font-size:9.5px;color:#555">L\'incasso \u00e8 arrivato e la fattura c\'\u00e8: manca solo la spunta "pagata" in Fatture in Cloud.</div>';
+  h+=tab(['Incasso','Cliente','\u20ac','Fattura'],g.sp.slice().reverse().map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(x.cli)+'</b>'+(x.liv==='CERTO diverso'?'<br><span style="color:#666;font-size:8.5px">in banca '+pnEur(x.in)+', in fattura '+pnEur(x.ramt)+'</span>':'')+'</td><td '+tn+'>'+pnEur(x.in)+'</td><td '+td+'>n. '+e(x.num)+' del '+pnIt(x.fdate,1)+'</td></tr>';})
+    .concat(g.dc.map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(pnTit(x.ord))+'</b><br><span style="color:#666;font-size:8.5px">DA CONFERMARE: stesso importo della fattura di '+e(x.cli)+'</span></td><td '+tn+'>'+pnEur(x.in)+'</td><td '+td+'>n. '+e(x.num)+' del '+pnIt(x.fdate,1)+'?</td></tr>';})));
+  h+='<h2 style="font-size:14px;margin:14px 0 2px;color:#c2571a">Fatture emesse, incasso non trovato in banca</h2><div style="font-size:9.5px;color:#555">Possono essere contanti, non ancora scadute, o davvero da sollecitare.</div>';
+  h+=tab(['Fattura','Cliente','Scadenza','\u20ac'],R.aperte.map(function(x){return '<tr><td '+td+'>n. '+e(x.num)+' del '+pnIt(x.fdate)+'</td><td '+td+'><b>'+e(x.cli)+'</b></td><td '+td+'>'+pnIt(x.due,1)+(x.due<R.fatto?' \u00b7 scaduta':'')+'</td><td '+tn+'>'+pnEur(x.amt)+'</td></tr>';}));
+  h+='<h2 style="font-size:14px;margin:14px 0 2px;color:#2e7d32">A posto</h2>'+tab(['Incasso','Cliente','\u20ac','Fattura'],g.ok.slice().reverse().map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'>'+e(x.cli)+'</td><td '+tn+'>'+pnEur(x.in)+'</td><td '+td+'>n. '+e(x.num)+'</td></tr>';}));
+  h+='<div style="font-size:9px;color:#555;border-top:1px solid #999;padding-top:8px;margin-top:10px">Un incasso \u00e8 "a posto" solo se coincidono il numero di fattura scritto in causale, oppure il nome di chi paga e l\'importo al centesimo. Non controllate: le '+R.nUsc+' uscite ('+pnEur(R.totUsc)+' \u20ac) e gli incassi in contanti, che in banca non compaiono. File: '+e(R.file||'')+'.</div></body></html>';
+  return h;
+}
+/* Il PDF lo fabbrica il ponte; su Drive lo carica l'app con il suo permesso (solo i file suoi). */
+async function pnSalvaPdf(){
+  if(pnSalvando||!pnRis) return;
+  pnSalvando=true; pnErr=''; pnPdf=null; render();
+  try{
+    var j=await pnPonte({azione:'pdf',html:pnReportHtml(pnRis)});
+    var bin=atob(j.pdf),bytes=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    var H={Authorization:'Bearer '+lsGet('pf_gtoken')},nomeC='CONTROLLI PRIMA NOTA';
+    var r=await fetch('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("name='"+nomeC+"' and mimeType='application/vnd.google-apps.folder' and trashed=false")+'&fields=files(id)',{headers:H});
+    if(!r.ok) throw new Error('Drive non risponde ('+r.status+'): ricollegati a Google da Sincronizza.');
+    var lista=(await r.json()).files||[],cartella=lista[0]&&lista[0].id;
+    if(!cartella){ r=await fetch('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify({name:nomeC,mimeType:'application/vnd.google-apps.folder'})}); cartella=(await r.json()).id; }
+    var nome='Controllo prima nota '+pnIt(pnRis.al,1).replace(/\//g,'-')+'.pdf',conf='pn'+Date.now();
+    var corpo=new Blob(['--'+conf+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({name:nome,parents:[cartella]})+'\r\n--'+conf+'\r\nContent-Type: application/pdf\r\n\r\n',bytes,'\r\n--'+conf+'--']);
+    r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',{method:'POST',headers:Object.assign({'Content-Type':'multipart/related; boundary='+conf},H),body:corpo});
+    if(!r.ok) throw new Error('Non sono riuscito a salvare su Drive ('+r.status+').');
+    var fatto=await r.json(); pnPdf={url:fatto.webViewLink,nome:nome};
+  }catch(e){ pnErr=String(e&&e.message||e); }
+  pnSalvando=false; render();
+}
+
+function renderPrimaNota(){
+  if(!pnCaricato){ pnCaricato=true; try{var d=lsGet('pf_primanota'); if(d) pnRis=JSON.parse(d);}catch(e){} }
+  var h='<div class="card"><div class="section-title">Controllo prima nota</div>';
+  h+='<div style="font-size:13px;color:#444;line-height:1.45;margin-bottom:12px">Scegli il file dei movimenti scaricato da Fineco: lo incrocio con le fatture emesse in Fatture in Cloud e ti dico cosa non torna.</div>';
+  h+='<label class="btn-primary pn-file" style="display:block;text-align:center'+(pnStato?';opacity:.6':'')+'">'+(pnStato?pzE(pnStato):(pnRis?'Scegli un altro file di Fineco':'Scegli il file di Fineco'))+'<input type="file" accept=".xlsx,.xls" style="display:none" onchange="pnFile(this)"'+(pnStato?' disabled':'')+'></label>';
+  h+='<details class="pn-come"><summary>Come scarico il file dalla banca</summary><ol><li>Entra in Fineco e apri <b>Conto e carte</b>, poi i movimenti.</li><li>Tocca l\'imbuto dei filtri, scegli <b>Ultimi 6 mesi</b> e premi <b>Cerca</b>.</li><li>In fondo alla pagina premi <b>Esporta in Excel</b> (ti chiede la conferma sul telefono).</li><li>Torna qui e scegli il file <b>movements_\u2026xlsx</b> appena scaricato.</li></ol></details>';
+  if(pnErr) h+='<div class="pz-msg">'+pzE(pnErr)+'</div>';
+  h+='</div>';
+  if(!pnRis) return h;
+  var R=pnRis,g=pnGruppi(R);
+  h+='<div style="font-size:12px;color:#888;padding:0 4px 8px">Incassi dal '+pnIt(R.dal,1)+' al '+pnIt(R.al,1)+' \u00b7 '+R.ent.length+' movimenti in entrata \u00b7 '+pnEur(pnSomma(R.ent,'in'))+' \u20ac'+(R.ultima?' \u00b7 ultima fattura n. '+pzE(R.ultima.n)+' del '+pnIt(R.ultima.d,1):'')+'</div>';
+  var tile=function(c,n,lab,tot){return '<div class="metric pn-t" style="border-left:4px solid '+c+'"><div class="pn-n">'+n+'</div><div class="metric-label">'+lab+'</div><div class="pn-e">'+pnEur(tot)+' \u20ac</div></div>';};
+  h+='<div class="metric-grid">'+tile('#A01020',g.ne.length,'incassi senza fattura',pnSomma(g.ne,'in'))+tile('#c98a00',g.sp.length+g.dc.length,'fatture pagate da spuntare',pnSomma(g.sp,'in')+pnSomma(g.dc,'in'))+tile('#c2571a',R.aperte.length,'fatture senza incasso in banca',pnSomma(R.aperte,'amt'))+tile('#2e7d32',g.ok.length,'a posto',pnSomma(g.ok,'in'))+'</div>';
+  h+='<div class="card"><button class="btn-primary" onclick="pnSalvaPdf()"'+(pnSalvando?' disabled':'')+'>'+(pnSalvando?'Preparo il PDF\u2026':'Salva il PDF su Drive')+'</button>'+(pnPdf?'<div class="pz-msg" style="background:#EAF3DE;color:#2e5d1e">Salvato su Drive nella cartella CONTROLLI PRIMA NOTA: <a href="'+pzE(pnPdf.url)+'" target="_blank" rel="noopener">'+pzE(pnPdf.nome)+'</a></div>':'')+'</div>';
+  var riga=function(sx,dx){return '<div class="pn-r"><div>'+sx+'</div><div class="pn-dx">'+dx+'</div></div>';};
+  var rne=function(x){return riga('<b>'+pzE(pnTit(x.ord||x.tipo))+'</b><i>'+pnIt(x.date)+' \u00b7 '+pzE(x.cau||x.tipo)+'</i>','<b>'+pnEur(x.in)+'</b><span class="badge '+(x.noto?'badge-green':'badge-orange')+'">'+(x.noto?'gi\u00e0 cliente':'cliente da creare')+'</span>');};
+  h+='<div class="card"><div class="section-title" style="color:#A01020">Incassi senza fattura \u00b7 '+g.ne.length+'</div><div class="pn-nota">Soldi entrati in banca per cui in Fatture in Cloud non trovo una fattura. Non tutti vanno fatturati: lo decidi tu.</div>';
+  if(g.neDopo.length) h+='<div class="pz-sub">Dopo l\'ultima fattura \u00b7 '+g.neDopo.length+' \u00b7 '+pnEur(pnSomma(g.neDopo,'in'))+' \u20ac</div>'+g.neDopo.map(rne).join('');
+  if(g.nePrima.length) h+='<div class="pz-sub">Prima \u00b7 '+g.nePrima.length+' \u00b7 '+pnEur(pnSomma(g.nePrima,'in'))+' \u20ac</div>'+g.nePrima.map(rne).join('');
+  if(!g.ne.length) h+='<div class="pn-nota">Nessuno.</div>';
+  h+='</div>';
+  h+='<div class="card"><div class="section-title" style="color:#9a6f00">Fatture pagate, da spuntare \u00b7 '+(g.sp.length+g.dc.length)+'</div><div class="pn-nota">L\'incasso \u00e8 arrivato e la fattura c\'\u00e8: manca solo la spunta \u201cpagata\u201d in Fatture in Cloud.</div>';
+  h+=g.sp.slice().reverse().map(function(x){return riga('<b>'+pzE(x.cli)+'</b><i>incasso del '+pnIt(x.date)+' \u00b7 fattura n. '+pzE(x.num)+' del '+pnIt(x.fdate,1)+(x.liv==='CERTO diverso'?' \u00b7 in fattura '+pnEur(x.ramt):'')+'</i>','<b>'+pnEur(x.in)+'</b>');}).join('');
+  if(g.dc.length) h+='<div class="pz-sub">Da confermare a occhio</div>'+g.dc.map(function(x){return riga('<b>'+pzE(pnTit(x.ord))+'</b><i>'+pnIt(x.date)+' \u00b7 stesso importo della fattura n. '+pzE(x.num)+' di '+pzE(x.cli)+'</i>','<b>'+pnEur(x.in)+'</b><span class="badge badge-orange">\u00e8 questa?</span>');}).join('');
+  h+='</div>';
+  h+='<div class="card"><div class="section-title" style="color:#c2571a">Fatture senza incasso in banca \u00b7 '+R.aperte.length+'</div><div class="pn-nota">Fatture dal 1\u00b0 luglio che risultano non pagate e di cui in banca non c\'\u00e8 traccia. Possono essere contanti, non ancora scadute, o davvero da sollecitare.</div>';
+  h+=R.aperte.map(function(x){var sc=x.due<R.fatto; return riga('<b>'+pzE(x.cli)+'</b><i>fattura n. '+pzE(x.num)+' del '+pnIt(x.fdate)+' \u00b7 scadenza '+pnIt(x.due,1)+'</i>','<b>'+pnEur(x.amt)+'</b><span class="badge '+(sc?'badge-red':'badge-green')+'">'+(sc?'scaduta':'non ancora')+'</span>');}).join('')+'</div>';
+  h+='<div class="card"><div class="section-title" style="color:#2e7d32;cursor:pointer" onclick="pnVediOk=!pnVediOk;render()">A posto \u00b7 '+g.ok.length+' \u00b7 '+pnEur(pnSomma(g.ok,'in'))+' \u20ac \u00b7 '+(pnVediOk?'nascondi':'tocca per vederli')+'</div>';
+  if(pnVediOk) h+=g.ok.slice().reverse().map(function(x){return riga('<b>'+pzE(x.cli)+'</b><i>'+pnIt(x.date)+' \u00b7 fattura n. '+pzE(x.num)+'</i>','<b>'+pnEur(x.in)+'</b>');}).join('');
+  h+='</div>';
+  h+='<div style="font-size:11.5px;color:#999;line-height:1.5;padding:4px 4px 20px">Un incasso \u00e8 \u201ca posto\u201d solo se coincidono il numero di fattura scritto in causale, oppure il nome di chi paga e l\'importo al centesimo. Non ho controllato le '+R.nUsc+' uscite ('+pnEur(R.totUsc)+' \u20ac) n\u00e9 gli incassi in contanti, che in banca non compaiono.</div>';
   return h;
 }
 
