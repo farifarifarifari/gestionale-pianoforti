@@ -180,6 +180,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .ft-f span{position:absolute;left:4px;bottom:4px;font-size:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:1px 5px}
 .ft-riga{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;padding:.75rem 1rem;margin-bottom:8px}
 .ft-riga b{font-size:14px}.ft-riga i{display:block;font-style:normal;font-size:11.5px;color:#888;margin-top:2px}
+.ft-stati button{padding:7px 2px;font-size:12px;line-height:1.25}.ft-stati button span{display:block;font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
@@ -4313,7 +4314,8 @@ function renderPrimaNota(){
    sottocartella "originali". Tutto passa dal permesso Drive dell'app (solo i file suoi).
    Lo sfondo sostituito NON c'e' ancora: si decide dopo la prova sulle foto vere. */
 const FT_RADICE='FOTO PIANOFORTI',FT_LATO=800,FT_PESO=100*1024;
-var ftIndice=null,ftAperto=null,ftFoto=null,ftQ='',ftFiltro='senza',ftMsg='',ftErr='',ftLavoro='',ftAnte={},ftNuovo=false,ftCaricoIndice=false;
+const FT_STATI=[['D','Deposito','in deposito'],['N','Noleggio','a noleggio'],['V','Venduti','venduti'],['T','Tutti','in elenco']];
+var ftStato='D',ftIndice=null,ftAperto=null,ftFoto=null,ftQ='',ftFiltro='senza',ftMsg='',ftErr='',ftLavoro='',ftAnte={},ftNuovo=false,ftCaricoIndice=false;
 
 function ftPulito(s){return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,' ').trim();}
 function ftChiave(p){var m=ftPulito(p.matricola).replace(/ /g,''); return m?m:('n'+p.numero);}
@@ -4487,14 +4489,18 @@ function renderFoto(){
   if(ftErr) h+='<div class="pz-msg">'+pzE(ftErr)+'</div>';
   if(!ftIndice) h+='<div class="pz-msg">'+(ftCaricoIndice?'Leggo da Drive quali pianoforti hanno già le foto…':'Per vedere chi ha già le foto collegati a Google da Sincronizza.')+'</div>';
   h+='</div>';
-  var q=ftQ.trim().toLowerCase(),base=pianos.filter(function(p){return q?true:p.stato==='D';});
+  /* Si possono fotografare tutti: in deposito, a noleggio (spesso rientrati senza che l'Excel
+     sia aggiornato) e venduti (a volte ricomprati). Cercando si guarda sempre tutto l'elenco. */
+  h+='<div class="pz-chips ft-stati">'+FT_STATI.map(function(s){var n=s[0]==='T'?pianos.length:pianos.filter(function(p){return p.stato===s[0];}).length; return '<button class="'+(ftStato===s[0]?'on':'')+'" onclick="ftStato=\''+s[0]+'\';render()">'+s[1]+'<span>'+n+'</span></button>';}).join('')+'</div>';
+  var q=ftQ.trim().toLowerCase(),base=pianos.filter(function(p){return q?true:(ftStato==='T'||p.stato===ftStato);});
   if(q) base=base.filter(function(p){return ((p.marca||'')+' '+(p.modello||'')+' '+(p.matricola||'')+' #'+p.numero).toLowerCase().indexOf(q)>=0;});
   var con=base.filter(function(p){return ftQuante(p)>0;}),senza=base.filter(function(p){return !(ftQuante(p)>0);});
   h+='<div class="pz-chips"><button class="'+(ftFiltro==='senza'?'on':'')+'" onclick="ftFiltro=\'senza\';render()">Senza foto · '+senza.length+'</button><button class="'+(ftFiltro==='con'?'on':'')+'" onclick="ftFiltro=\'con\';render()">Con foto · '+con.length+'</button></div>';
   var lista=(ftFiltro==='con'?con:senza).slice().sort(function(a,b){return (a.marca||'').localeCompare(b.marca||'')||(a.modello||'').localeCompare(b.modello||'')||a.numero-b.numero;});
-  h+='<div style="font-size:12px;color:#888;padding:0 4px 8px">'+(q?'Risultati in tutto l\'elenco':'Pianoforti in deposito')+' · '+lista.length+'</div>';
+  h+='<div style="font-size:12px;color:#888;padding:0 4px 8px">'+(q?'Risultati in tutto l\'elenco':'Pianoforti '+FT_STATI.filter(function(s){return s[0]===ftStato;})[0][2])+' · '+lista.length+(lista.length>150?' · ne mostro 150: cerca per restringere':'')+'</div>';
   if(!pianos.length) h+='<div class="empty-state">L\'elenco dei pianoforti è vuoto: importa il file Excel dalla sezione Excel.</div>';
-  h+=lista.slice(0,150).map(function(p){var n=ftQuante(p); return '<div class="card ft-riga" onclick="ftApri(\''+ftChiave(p)+'\')"><div><b>'+pzE((p.marca||'').trim()+' '+(p.modello||''))+'</b><i>#'+p.numero+' · matr. '+pzE(p.matricola||'—')+(q&&p.stato?' · '+p.stato:'')+'</i></div>'+(n===null?'':'<span class="badge '+(n?'badge-green':'badge-red')+'">'+(n?n+' foto':'senza foto')+'</span>')+'</div>';}).join('');
+  h+=lista.slice(0,150).map(function(p){var n=ftQuante(p); return '<div class="card ft-riga" onclick="ftApri(\''+ftChiave(p)+'\')"><div><b>'+pzE((p.marca||'').trim()+' '+(p.modello||''))+'</b><i>#'+p.numero+' · matr. '+pzE(p.matricola||'—')+((q||ftStato==='T')&&p.stato?' · '+({N:'a noleggio',D:'in deposito',V:'venduto'}[p.stato]||p.stato):'')+'</i></div>'+(n===null?'':'<span class="badge '+(n?'badge-green':'badge-red')+'">'+(n?n+' foto':'senza foto')+'</span>')+'</div>';}).join('');
+  h+='<div class="card" style="border-left:4px solid #c98a00"><div class="section-title" style="color:#9a6f00">Da fare · lo sfondo standard</div><div class="pn-nota" style="margin:0">Per mettere lo stesso sfondo a tutte le foto serve prima la foto dello sfondo vuoto: il corridoio dei coda senza nessun pianoforte davanti, scattata in 1:1 dal punto dove fotografi di solito. Fanne due o tre, una per i verticali e una per i coda. Poi si prova il ritaglio su quattro foto fatte in magazzino.</div></div>';
   h+='<div class="card">'+(ftNuovo?'<div class="section-title">Pianoforte non in elenco</div><input id="ft-marca" class="pz-cerca" placeholder="Marca" style="margin-bottom:8px"><input id="ft-modello" class="pz-cerca" placeholder="Modello" style="margin-bottom:8px"><input id="ft-matricola" class="pz-cerca" placeholder="Matricola" style="margin-bottom:10px"><button class="btn-primary" onclick="ftApriNuovo()">Apri</button>':'<div class="pz-piu" style="padding-top:0" onclick="ftNuovo=true;render()">Il pianoforte non è in elenco? Scrivilo a mano</div>')+'</div>';
   return h;
 }
