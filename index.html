@@ -172,6 +172,7 @@ main{flex:1;padding:8px 12px;padding-bottom:20px}
 .pn-r>div:first-child{min-width:0}.pn-r b{font-size:13.5px}.pn-r i{display:block;font-style:normal;font-size:11.5px;color:#888;margin-top:2px;word-break:break-word}
 .pn-dx{text-align:right;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end;gap:4px}.pn-dx b{font-size:14.5px;font-variant-numeric:tabular-nums}
 .pn-btn{font-size:11.5px;padding:5px 9px;border-radius:8px;border:.5px solid #e5c87a;background:#FAEEDA;color:#633806;cursor:pointer;white-space:nowrap}.pn-btn:disabled{opacity:.5}
+.pn-r i.pn-acc{color:#9a6f00;font-weight:500}
 </style>
 </head>
 <body>
@@ -4097,10 +4098,12 @@ function pnIncrocia(mov,fatture,ricevute){
     else e.chi='';
     e.chi=pulisci(e.chi);
     e.banca=(/F24|Canone Mensile|Imposta (di )?bollo|Commission|Competenze|Interessi|Prelievo|Giroconto|Ricarica/i.test(e.tipo)||/stipend|emolument|busta paga/i.test(e.cau))?1:0; });
-  var finU=function(r,e){return r.fj>=e.j-200&&r.fj<=e.j+20&&(r.st!=='paid'||!r.paid||Math.abs(pnG(r.paid)-e.j)<=45);};
+  /* I pianoforti ai fornitori si pagano a rate anche a un anno e piu' dalla fattura (D'Errico). */
+  var finU=function(r,e){return r.fj>=e.j-800&&r.fj<=e.j+20&&(r.st!=='paid'||!r.paid||Math.abs(pnG(r.paid)-e.j)<=45);};
   var daCercare=usc.filter(function(e){return !e.banca;});
   daCercare.forEach(function(e){ var so=pnStrip(e.txt);
-    var c=forn.filter(function(r){var sn=pnStrip(r.num); return !r.used&&sn.length>=4&&so.indexOf(sn)>=0&&finU(r,e)&&Math.abs(r.amt-e.out)<=1;});
+    /* in fattura "FEP 173_25", nel bonifico "Saldo Fattura 173/25": si confronta anche senza le lettere davanti */
+    var c=forn.filter(function(r){var sn=pnStrip(r.num),sd=sn.replace(/^[A-Z]+/,''); return !r.used&&((sn.length>=4&&so.indexOf(sn)>=0)||(sd.length>=4&&so.indexOf(sd)>=0))&&finU(r,e)&&Math.abs(r.amt-e.out)<=1;});
     var giusti=c.filter(function(r){return uguale(r.amt,e.out);});
     if(giusti.length) prendi(e,scegli(giusti,e),'CERTO'); else if(c.length) prendi(e,scegli(c,e),'CERTO diverso'); });
   daCercare.filter(function(e){return e.liv==='NESSUNA';}).forEach(function(e){ var so=pnStrip(e.txt);
@@ -4111,7 +4114,15 @@ function pnIncrocia(mov,fatture,ricevute){
     var stessi=daCercare.filter(function(x){return x.liv==='NESSUNA'&&uguale(x.out,e.out)&&Math.abs(x.j-e.j)<=60;});
     if(c.length===1&&stessi.length===1) proponi(e,c[0]); });
 
-  var copia=function(e,imp){return {date:e.date,imp:imp,tipo:e.tipo,ord:e.ord||e.chi||'',cau:e.cau,liv:e.liv,num:e.num,fdate:e.fdate,cli:e.cli,st:e.st,ramt:e.ramt,fid:e.fid,rid:e.rid,noto:e.noto?1:0,banca:e.banca?1:0};};
+  /* Acconti: nessuna rata di quell'importo, ma quel nome ha una rata aperta piu' grande. Solo un avviso. */
+  var acconto=function(e,lista,imp,nome,giorni){ var c=lista.filter(function(r){return !r.used&&r.st!=='paid'&&r.amt>imp+0.011&&r.fj>=e.j-giorni&&r.fj<=e.j+60&&nomeok(r,nome);}).sort(function(a,b){return a.fj-b.fj;});
+    if(c.length) e.acc='n. '+c[0].num+' del '+pnIt(c[0].fdate,1)+', rata aperta di '+pnEur(c[0].amt)+' €'; };
+  ent.filter(function(e){return e.liv==='NESSUNA';}).forEach(function(e){ acconto(e,rate,e.in,e.ord+' '+e.cau,400); });
+  var fornitori={}; forn.forEach(function(r){ if(!fornitori[r.cli]) fornitori[r.cli]=r; });
+  var nomiF=Object.keys(fornitori).sort();
+  daCercare.filter(function(e){return e.liv==='NESSUNA';}).forEach(function(e){ acconto(e,forn,e.out,e.chi+' '+e.cau,800);
+    for(var i=0;i<nomiF.length;i++){ if(nomeok(fornitori[nomiF[i]],e.chi+' '+e.cau)){ e.noto=nomiF[i]; break; } } });
+  var copia=function(e,imp){return {acc:e.acc||'',date:e.date,imp:imp,tipo:e.tipo,ord:e.ord||e.chi||'',cau:e.cau,liv:e.liv,num:e.num,fdate:e.fdate,cli:e.cli,st:e.st,ramt:e.ramt,fid:e.fid,rid:e.rid,noto:e.noto?1:0,banca:e.banca?1:0};};
   var aperte=function(lista){return lista.filter(function(r){return r.fj>=T&&r.st!=='paid'&&!r.used;}).sort(function(a,b){return a.fj-b.fj;}).map(function(r){return {num:r.num,fdate:r.fdate,due:r.due,amt:r.amt,cli:r.cli};});};
   var ultima=(fatture||[]).reduce(function(a,f){var d=String(f.d).slice(0,10); return (!a||d>a.d||(d===a.d&&+f.n>+a.n))?{d:d,n:f.n}:a;},null);
   var gg=mov.map(function(m){return m.j;});
@@ -4146,7 +4157,7 @@ async function pnFile(inp){
     var primo=Math.min.apply(null,mov.map(function(m){return m.j;})),dal=pnIso(Math.min(primo,pnG(PN_TAGLIO))-400);
     pnStato='Letti '+mov.length+' movimenti. Ora leggo le fatture da Fatture in Cloud\u2026'; render();
     var j=await pnPonte({azione:'emesse',dal:dal}),ric=null,avviso='';
-    try{ ric=(await pnPonte({azione:'ricevute',dal:dal})).fatture||[]; }catch(e2){ avviso='Le fatture dei fornitori non sono arrivate ('+String(e2&&e2.message||e2)+'): per ora vedi solo gli incassi.'; }
+    try{ ric=(await pnPonte({azione:'ricevute',dal:pnIso(Math.min(primo,pnG(PN_TAGLIO))-800)})).fatture||[]; }catch(e2){ avviso='Le fatture dei fornitori non sono arrivate ('+String(e2&&e2.message||e2)+'): per ora vedi solo gli incassi.'; }
     pnRis=pnIncrocia(mov,j.fatture||[],ric); pnRis.file=f.name;
     lsSet('pf_primanota',pnRis); pnErr=avviso;
   }catch(e){ pnErr=String(e&&e.message||e); }
@@ -4188,7 +4199,7 @@ function pnReportHtml(R){
   var tab=function(tit,righe){return righe.length?'<table width="100%" cellspacing="0" style="border-collapse:collapse;margin:4px 0 14px"><tr>'+tit.map(function(t){return '<th '+th+'>'+t+'</th>';}).join('')+'</tr>'+righe.join('')+'</table>':'<div style="font-size:10px;color:#555;margin:4px 0 14px">Nessuna.</div>';};
   var h2=function(t,c){return '<h2 style="font-size:14px;margin:14px 0 2px;color:'+c+'">'+t+'</h2>';},nota=function(t){return '<div style="font-size:9.5px;color:#555">'+t+'</div>';};
   var tiles=function(a){return '<table width="100%" cellspacing="6" style="margin-bottom:10px"><tr>'+a.map(function(t){return '<td style="border:1px solid #ccc;border-left:5px solid '+t[3]+';padding:8px"><div style="font-size:20px"><b>'+t[0]+'</b></div><div style="font-size:9px;color:#555">'+t[1]+'</div><div style="font-size:10px">'+pnEur(t[2])+' \u20ac</div></td>';}).join('')+'</tr></table>';};
-  var senza=function(a,out){return a.map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(pnTit(x.ord||x.tipo))+'</b><br><span style="color:#666;font-size:8.5px">'+e(x.cau||x.tipo)+'</span></td><td '+tn+'>'+pnEur(x.imp)+'</td><td '+td+'>'+(out?e(x.tipo):(x.noto?'gi\u00e0 cliente':'cliente da creare'))+'</td></tr>';});};
+  var senza=function(a,out){return a.map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(pnTit(x.ord||x.tipo))+'</b><br><span style="color:#666;font-size:8.5px">'+e(x.cau||x.tipo)+(x.acc?' · FORSE ACCONTO sulla fattura '+e(x.acc):'')+'</span></td><td '+tn+'>'+pnEur(x.imp)+'</td><td '+td+'>'+(out?e(x.tipo):(x.noto?'gi\u00e0 cliente':'cliente da creare'))+'</td></tr>';});};
   var spunta=function(g){return g.sp.slice().reverse().map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(x.cli)+'</b>'+(x.liv==='CERTO diverso'?'<br><span style="color:#666;font-size:8.5px">in banca '+pnEur(x.imp)+', in fattura '+pnEur(x.ramt)+'</span>':'')+'</td><td '+tn+'>'+pnEur(x.imp)+'</td><td '+td+'>n. '+e(x.num)+' del '+pnIt(x.fdate,1)+'</td></tr>';})
     .concat(g.dc.map(function(x){return '<tr><td '+td+'>'+pnIt(x.date)+'</td><td '+td+'><b>'+e(pnTit(x.ord))+'</b><br><span style="color:#666;font-size:8.5px">DA CONFERMARE: stesso importo della fattura di '+e(x.cli)+'</span></td><td '+tn+'>'+pnEur(x.imp)+'</td><td '+td+'>n. '+e(x.num)+' del '+pnIt(x.fdate,1)+'?</td></tr>';}));};
   var aperte=function(a){return a.map(function(x){return '<tr><td '+td+'>n. '+e(x.num)+' del '+pnIt(x.fdate)+'</td><td '+td+'><b>'+e(x.cli)+'</b></td><td '+td+'>'+pnIt(x.due,1)+(x.due<R.fatto?' \u00b7 scaduta':'')+'</td><td '+tn+'>'+pnEur(x.amt)+'</td></tr>';});};
@@ -4257,7 +4268,7 @@ function renderPrimaNota(){
   h+='<div class="card"><button class="btn-primary" onclick="pnSalvaPdf()"'+(pnSalvando?' disabled':'')+'>'+(pnSalvando?'Preparo il PDF\u2026':'Salva il PDF su Drive')+'</button>'+(pnPdf?'<div class="pz-msg" style="background:#EAF3DE;color:#2e5d1e">Salvato su Drive nella cartella CONTROLLI PRIMA NOTA: <a href="'+pzE(pnPdf.url)+'" target="_blank" rel="noopener">'+pzE(pnPdf.nome)+'</a></div>':'')+'</div>';
   var riga=function(sx,dx){return '<div class="pn-r"><div>'+sx+'</div><div class="pn-dx">'+dx+'</div></div>';};
   var tasto=function(x,testo){ if(!x.fid||!x.rid) return ''; var k=x.fid+'|'+x.rid; return '<button class="pn-btn" onclick="pnSegna(\''+pnVista+'\',\''+k+'\')"'+(pnSegnando?' disabled':'')+'>'+(pnSegnando===k?'Segno\u2026':testo)+'</button>'; };
-  var rne=function(x){return riga('<b>'+pzE(pnTit(x.ord||x.tipo))+'</b><i>'+pnIt(x.date)+' \u00b7 '+pzE(x.cau||x.tipo)+'</i>','<b>'+pnEur(x.imp)+'</b>'+(out?'<span class="badge">'+pzE(x.tipo.replace(/^Pagamento /,''))+'</span>':'<span class="badge '+(x.noto?'badge-green':'badge-orange')+'">'+(x.noto?'gi\u00e0 cliente':'cliente da creare')+'</span>'));};
+  var rne=function(x){return riga('<b>'+pzE(pnTit(x.ord||x.tipo))+'</b><i>'+pnIt(x.date)+' \u00b7 '+pzE(x.cau||x.tipo)+'</i>'+(x.acc?'<i class="pn-acc">Forse un acconto sulla fattura '+pzE(x.acc)+'</i>':''),'<b>'+pnEur(x.imp)+'</b>'+(out?'<span class="badge'+(x.noto?' badge-green':'')+'">'+(x.noto?'fornitore in elenco':pzE(x.tipo.replace(/^Pagamento /,'')))+'</span>':'<span class="badge '+(x.noto?'badge-green':'badge-orange')+'">'+(x.noto?'gi\u00e0 cliente':'cliente da creare')+'</span>'));};
   h+='<div class="card"><div class="section-title" style="color:#A01020">'+(out?'Uscite senza fattura':'Incassi senza fattura')+' \u00b7 '+g.ne.length+'</div><div class="pn-nota">'+(out?'Pagamenti per cui in Fatture in Cloud non trovo la fattura del fornitore: da chiedere, da registrare, o spese che non ne hanno.':'Soldi entrati in banca per cui in Fatture in Cloud non trovo una fattura. Non tutti vanno fatturati: lo decidi tu.')+'</div>';
   if(out) h+=g.ne.slice().reverse().map(rne).join('');
   else{
